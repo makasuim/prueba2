@@ -1,39 +1,33 @@
-name: E2E Selenium (Vercel Prod)
+name: TEST Selenium (Vercel Prod)
 
 on:
   push:
   pull_request:
 
 jobs:
-  e2e:
+  TEST:  # ← cambia el nombre del job aquí
     runs-on: ubuntu-latest
 
     steps:
-      # 1) Clona el repo
       - uses: actions/checkout@v4
 
-      # 2) Configura PNPM
       - uses: pnpm/action-setup@v4
         with:
           version: 9
 
-      # 3) Configura Node + cache
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
+          cache: 'pnpm'
 
-      # 4) Instala dependencias (evita error de lockfile desactualizado)
       - name: Install deps
         run: pnpm install --no-frozen-lockfile
 
-      # 5) Instala Google Chrome (estable)
       - name: Setup Chrome
         uses: browser-actions/setup-chrome@v1
         with:
           chrome-version: latest
 
-      # 6) Debug útil en logs
       - name: Debug versions
         run: |
           node -v
@@ -41,7 +35,6 @@ jobs:
           google-chrome --version || true
           npx chromedriver --version || true
 
-      # 7) Ejecuta los tests apuntando a producción en Vercel
       - name: Run Selenium tests (Prod)
         env:
           BASE_URL: https://prueba-finalmente.vercel.app
