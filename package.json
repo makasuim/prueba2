@@ -29,6 +29,7 @@
     "typescript": "^5",
     "mocha": "^10.7.0",
     "selenium-webdriver": "^4.24.0",
+    "chromedriver": "^140.0.0",
     "wait-on": "^7.2.0"
   },
   "pnpm": {
