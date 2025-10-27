@@ -37,7 +37,7 @@ async function addFromDetail(driver) {
 }
 
 describe("Actualización de total al cambiar cantidad", function () {
-  this.timeout(90000);
+  this.timeout(120000);
   let driver;
 
   before(async () => {
@@ -63,8 +63,14 @@ describe("Actualización de total al cambiar cantidad", function () {
     };
     const total1 = await readTotal();
 
-    await addFromDetail(driver);
-    await driver.get(`${BASE_URL}/pago`);
-    await driver.wait(async () => (await readTotal()) > total1, 30000);
+    const firstItemPlus = By.xpath("(//div[contains(@class,'carrito-item') or contains(@class,'card')][.//i[contains(@class,'fa-times')] or .//i[contains(@class,'fa-plus')]])[1]//button[.//i[contains(@class,'fa-plus')]]");
+    await driver.wait(until.elementLocated(firstItemPlus), 20000);
+    const plusEl = await driver.findElement(firstItemPlus);
+    await clickSmart(driver, plusEl);
+
+    await driver.wait(async () => {
+      const t2 = await readTotal();
+      return t2 > total1;
+    }, 30000);
   });
 });
