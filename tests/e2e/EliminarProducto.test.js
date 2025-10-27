@@ -19,21 +19,26 @@ describe("Eliminar producto del carrito", function () {
 
   it("Elimina correctamente un producto del carrito", async function () {
     await driver.get(`${BASE_URL}/inventario`);
-
     const addBtn = By.xpath("(//button[contains(.,'Añadir') or contains(.,'Agregar')])[1]");
     await driver.wait(until.elementLocated(addBtn), 15000);
-    await driver.findElement(addBtn).click();
+    const el = await driver.findElement(addBtn);
+    await driver.executeScript("arguments[0].scrollIntoView(true);", el);
+    await driver.wait(until.elementIsVisible(el), 5000);
+    await driver.wait(until.elementIsEnabled(el), 5000);
+    await el.click();
 
     await driver.get(`${BASE_URL}/pago`);
-
     const deleteBtn = By.xpath("(//button[.//i[contains(@class,'fa-times')]])[1]");
     await driver.wait(until.elementLocated(deleteBtn), 15000);
+    const delEl = await driver.findElement(deleteBtn);
+    await driver.executeScript("arguments[0].scrollIntoView(true);", delEl);
+    await driver.wait(until.elementIsVisible(delEl), 5000);
+    await driver.wait(until.elementIsEnabled(delEl), 5000);
 
     const before = await driver.findElements(deleteBtn);
     if (!before.length) throw new Error("No hay items en el carrito");
 
-    await driver.findElement(deleteBtn).click();
-
+    await delEl.click();
     await driver.sleep(800);
 
     const after = await driver.findElements(deleteBtn);
