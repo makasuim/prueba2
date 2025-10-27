@@ -68,8 +68,8 @@ describe("Registro y acceso", function () {
     const savedOk = await driver.wait(async () => {
       const s = await driver.executeScript("return localStorage.getItem('usuarioRegistrado')");
       if (!s) return false;
-      try { const o = JSON.parse(s); return o && o.correo === arguments[0]; } catch { return false; }
-    }, 15000, "", email);
+      try { const o = JSON.parse(s); return o && o.correo === email; } catch { return false; }
+    }, 15000);
     if (!savedOk) throw new Error("usuarioRegistrado no fue creado");
 
     await driver.get(`${BASE_URL}/acceso`);
@@ -93,8 +93,8 @@ describe("Registro y acceso", function () {
         const s = await driver.executeScript("return sessionStorage.getItem('sesionActiva')");
         if (!s) return false;
         const o = JSON.parse(s);
-        return o && o.activo && o.correo === arguments[0];
+        return o && o.activo && o.correo === email;
       } catch { return false; }
-    }, 20000, "", email);
+    }, 20000);
   });
 });
