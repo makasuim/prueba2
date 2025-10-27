@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Row, Col, Card, Button, Alert } from "react-bootstrap";
 import { useParams, useRouter } from "next/navigation";
 import { todosLosProductos, Producto } from "../../Data";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import { getOfertaFor } from "../../Data";
 
 const getProductById = (id: number): Producto | undefined => {
   const allProducts = [
@@ -16,40 +17,42 @@ const getProductById = (id: number): Producto | undefined => {
 };
 
 const DetalleClient: React.FC = () => {
-  const params = useParams<{ id: string }>();
+  const params = useParams();
   const router = useRouter();
 
-  const productId = Number(params?.id);
+  const productId = Number(params.id);
 
   const [producto, setProducto] = useState<Producto | null>(null);
   const [cantidad, setCantidad] = useState<number>(1);
   const [mensaje, setMensaje] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [stockLocal, setStockLocal] = useState<number>(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     if (!productId || isNaN(productId)) {
       setLoading(false);
       return;
     }
-
     const productoEncontrado = getProductById(productId);
-
     if (productoEncontrado) {
       setProducto(productoEncontrado);
-
-      const stored = sessionStorage.getItem("stockActual");
-      const storedStock = stored ? JSON.parse(stored) : {};
+      let storedStock = JSON.parse(
+        sessionStorage.getItem("stockActual") || "{}"
+      );
       const stock =
         storedStock[productId] !== undefined
           ? storedStock[productId]
           : productoEncontrado.stock;
-
       setStockLocal(stock);
       setCantidad(stock > 0 ? 1 : 0);
     }
-
+    setIsLoggedIn(localStorage.getItem("isLoggedIn") === "1");
+    const onAuth = () =>
+      setIsLoggedIn(localStorage.getItem("isLoggedIn") === "1");
+    window.addEventListener("authChanged", onAuth);
     setLoading(false);
+    return () => window.removeEventListener("authChanged", onAuth);
   }, [productId]);
 
   const handleSetCantidad = (nuevaCantidad: number) => {
@@ -61,7 +64,6 @@ const DetalleClient: React.FC = () => {
 
   const agregarAlCarrito = () => {
     if (!producto) return;
-
     if (cantidad === 0 || cantidad > stockLocal) {
       setMensaje({
         texto:
@@ -73,13 +75,10 @@ const DetalleClient: React.FC = () => {
       setTimeout(() => setMensaje(null), 4000);
       return;
     }
-
-    const storedCart = localStorage.getItem("carrito");
-    let carrito = storedCart ? JSON.parse(storedCart) : [];
+    let carrito = JSON.parse(localStorage.getItem("carrito") || "[]");
     const itemExistenteIndex = carrito.findIndex(
       (item: any) => item.id === producto.id
     );
-
     if (itemExistenteIndex > -1) {
       carrito[itemExistenteIndex].cantidad += cantidad;
     } else {
@@ -87,26 +86,23 @@ const DetalleClient: React.FC = () => {
         id: producto.id,
         nombre: producto.nombre,
         precio: producto.precio,
-        cantidad,
+        cantidad: cantidad,
         stock: producto.stock,
       });
     }
     localStorage.setItem("carrito", JSON.stringify(carrito));
-
     const nuevoStock = stockLocal - cantidad;
-    const stored = sessionStorage.getItem("stockActual");
-    const storedStock = stored ? JSON.parse(stored) : {};
+    let storedStock = JSON.parse(sessionStorage.getItem("stockActual") || "{}");
     storedStock[producto.id] = nuevoStock;
     sessionStorage.setItem("stockActual", JSON.stringify(storedStock));
     setStockLocal(nuevoStock);
-
     setMensaje({
       texto: `Se añadieron ${cantidad} unidades de "${producto.nombre}" al carrito.`,
       tipo: "success",
     });
-
     setCantidad(nuevoStock > 0 ? 1 : 0);
     setTimeout(() => setMensaje(null), 3000);
+    window.dispatchEvent(new CustomEvent("carritoActualizado"));
   };
 
   if (loading || !producto) {
@@ -122,36 +118,64 @@ const DetalleClient: React.FC = () => {
   }
 
   const esBajoStock = stockLocal > 0 && stockLocal < 3;
-  const stockDisponible = stockLocal;
+  const off = isLoggedIn ? getOfertaFor(producto.id) : 0;
+  const precioConOff = off
+    ? Math.round(producto.precio - producto.precio * (off / 100))
+    : producto.precio;
+  const hayOferta = off > 0;
 
   return (
     <main className="container my-5 flex-grow-1">
       <Row className="justify-content-center">
         <Col lg={10}>
-          <Card className="shadow-lg p-4">
+          <Card className="shadow-lg p-4 position-relative">
+            {hayOferta && (
+              <span
+                className="position-absolute top-0 start-0 m-3 badge bg-danger"
+                style={{ zIndex: 2 }}
+              >
+                -{off}%
+              </span>
+            )}
             <Row>
               <Col md={6} className="mb-4 mb-md-0">
                 <img
                   src={producto.imagen}
                   alt={producto.nombre}
                   className="img-fluid rounded-lg shadow-sm"
-                  style={{ maxHeight: "450px", objectFit: "cover", width: "100%" }}
+                  style={{
+                    maxHeight: "450px",
+                    objectFit: "cover",
+                    width: "100%",
+                  }}
                 />
               </Col>
 
               <Col md={6}>
                 <h1 className="text-primary fw-bold mb-3">{producto.nombre}</h1>
+
                 <p className="lead">{producto.descripcion}</p>
 
-                <div className="mb-3">
-                  <span className="fw-bold fs-3 text-dark">
-                    ${producto.precio.toLocaleString("es-CL")}
-                  </span>
-                </div>
+                {hayOferta ? (
+                  <div className="mb-3 d-flex align-items-baseline gap-2">
+                    <span className="text-muted text-decoration-line-through">
+                      ${producto.precio.toLocaleString("es-CL")}
+                    </span>
+                    <span className="fw-bold text-success fs-3">
+                      ${precioConOff.toLocaleString("es-CL")}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="mb-3">
+                    <span className="fw-bold fs-3 text-dark">
+                      ${producto.precio.toLocaleString("es-CL")}
+                    </span>
+                  </div>
+                )}
 
                 <div className="mb-3">
                   <span className="fw-bold text-muted">Stock Disponible: </span>
-                  <span className="fw-bold text-info fs-5">{stockDisponible}</span>
+                  <span className="fw-bold text-info fs-5">{stockLocal}</span>
                 </div>
 
                 {esBajoStock && (
@@ -169,14 +193,17 @@ const DetalleClient: React.FC = () => {
                   >
                     <i className="fas fa-minus"></i>
                   </Button>
-                  <span className="fw-bold fs-3 text-dark px-3" id="cantidadDetalle">
+                  <span
+                    className="fw-bold fs-3 text-dark px-3"
+                    id="cantidadDetalle"
+                  >
                     {cantidad}
                   </span>
                   <Button
                     variant="outline-primary"
                     size="lg"
                     onClick={() => handleSetCantidad(cantidad + 1)}
-                    disabled={cantidad >= stockDisponible || stockDisponible === 0}
+                    disabled={cantidad >= stockLocal || stockLocal === 0}
                   >
                     <i className="fas fa-plus"></i>
                   </Button>
@@ -187,7 +214,7 @@ const DetalleClient: React.FC = () => {
                   size="lg"
                   className="w-100 mb-3"
                   onClick={agregarAlCarrito}
-                  disabled={stockDisponible === 0 || cantidad === 0}
+                  disabled={stockLocal === 0 || cantidad === 0}
                 >
                   <i className="fas fa-cart-plus me-2"></i>
                   Añadir al Carrito

@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Col, Card, Button, Alert } from "react-bootstrap";
-import { todosLosProductos, Producto } from "../Data";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import { todosLosProductos, Producto } from "../Data";
+import { getOfertaFor } from "../Data";
 
 const getProductsMap = (): Map<number, Producto> => {
   const map = new Map<number, Producto>();
@@ -38,12 +39,11 @@ const InventarioClient: React.FC = () => {
     [key: number]: number;
   }>({});
   const [stockActual, setStockActual] = useState<{ [key: number]: number }>({});
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const initialStock: { [key: number]: number } = {};
-    const stored = sessionStorage.getItem("stockActual");
-    let storedStock = stored ? JSON.parse(stored) : {};
-
+    let storedStock = JSON.parse(sessionStorage.getItem("stockActual") || "{}");
     productDataMap.forEach((product) => {
       if (storedStock[product.id] === undefined) {
         initialStock[product.id] = product.stock;
@@ -51,9 +51,13 @@ const InventarioClient: React.FC = () => {
         initialStock[product.id] = storedStock[product.id];
       }
     });
-
     setStockActual(initialStock);
     sessionStorage.setItem("stockActual", JSON.stringify(initialStock));
+    setIsLoggedIn(localStorage.getItem("isLoggedIn") === "1");
+    const onAuth = () =>
+      setIsLoggedIn(localStorage.getItem("isLoggedIn") === "1");
+    window.addEventListener("authChanged", onAuth);
+    return () => window.removeEventListener("authChanged", onAuth);
   }, []);
 
   useEffect(() => {
@@ -63,13 +67,11 @@ const InventarioClient: React.FC = () => {
   useEffect(() => {
     let productosAMostrar = getTodosLosProductosArray();
     let nuevoTitulo = "Todos los Productos";
-
     if (categoriaQuery && todosLosProductos[categoriaQuery]) {
       productosAMostrar = todosLosProductos[categoriaQuery];
       nuevoTitulo =
         categoriaQuery.charAt(0).toUpperCase() + categoriaQuery.slice(1);
     }
-
     setProductosFiltrados(productosAMostrar);
     setTitulo(nuevoTitulo);
     setCantidadesSeleccionadas({});
@@ -78,11 +80,7 @@ const InventarioClient: React.FC = () => {
   const handleSetCantidad = (id: number, cantidad: number) => {
     const maxStock = stockActual[id] || 0;
     const nuevaCantidad = Math.max(0, Math.min(cantidad, maxStock));
-
-    setCantidadesSeleccionadas((prev) => ({
-      ...prev,
-      [id]: nuevaCantidad,
-    }));
+    setCantidadesSeleccionadas((prev) => ({ ...prev, [id]: nuevaCantidad }));
   };
 
   const agregarAlCarrito = (producto: Producto, cantidad: number) => {
@@ -94,7 +92,6 @@ const InventarioClient: React.FC = () => {
       setTimeout(() => setMensaje(null), 3000);
       return;
     }
-
     const currentStock = stockActual[producto.id] || 0;
     if (cantidad > currentStock) {
       setMensaje({
@@ -104,35 +101,34 @@ const InventarioClient: React.FC = () => {
       setTimeout(() => setMensaje(null), 4000);
       return;
     }
-
-    const stored = localStorage.getItem("carrito");
-    let carrito = stored ? JSON.parse(stored) : [];
-    const idx = carrito.findIndex((item: any) => item.id === producto.id);
-
-    if (idx > -1) {
-      carrito[idx].cantidad += cantidad;
+    let carrito = JSON.parse(localStorage.getItem("carrito") || "[]");
+    const itemExistenteIndex = carrito.findIndex(
+      (item: any) => item.id === producto.id
+    );
+    if (itemExistenteIndex > -1) {
+      carrito[itemExistenteIndex].cantidad += cantidad;
     } else {
-      carrito.push({ id: producto.id, cantidad });
+      carrito.push({ id: producto.id, cantidad: cantidad });
     }
-
     localStorage.setItem("carrito", JSON.stringify(carrito));
     window.dispatchEvent(new CustomEvent("carritoActualizado"));
-
     setStockActual((prevStock) => ({
       ...prevStock,
       [producto.id]: prevStock[producto.id] - cantidad,
     }));
-
-    setCantidadesSeleccionadas((prev) => ({
-      ...prev,
-      [producto.id]: 0,
-    }));
-
+    setCantidadesSeleccionadas((prev) => ({ ...prev, [producto.id]: 0 }));
     setMensaje({
       texto: `Se añadieron ${cantidad} unidades de "${producto.nombre}" al carrito.`,
       tipo: "success",
     });
     setTimeout(() => setMensaje(null), 3000);
+  };
+
+  const precioConOferta = (p: Producto) => {
+    const off = isLoggedIn ? getOfertaFor(p.id) : 0;
+    if (!off) return null;
+    const linea = Math.round(p.precio - p.precio * (off / 100));
+    return { off, linea };
   };
 
   return (
@@ -156,12 +152,21 @@ const InventarioClient: React.FC = () => {
           const cantidadSeleccionada =
             cantidadesSeleccionadas[producto.id] || 0;
           const esBajoStock = stock > 0 && stock < 3;
+          const oferta = precioConOferta(producto);
 
           return (
             <Col xs={12} sm={6} md={4} lg={3} key={producto.id}>
               <Card className="h-100 shadow-sm border-0 rounded-lg overflow-hidden product-card d-flex flex-column">
                 <Link href={`/detalle/${producto.id}`} passHref legacyBehavior>
-                  <a className="text-decoration-none text-dark d-block">
+                  <a className="text-decoration-none text-dark d-block position-relative">
+                    {oferta && (
+                      <span
+                        className="position-absolute top-0 start-0 m-2 badge bg-danger"
+                        style={{ zIndex: 2 }}
+                      >
+                        -{oferta.off}%
+                      </span>
+                    )}
                     <Card.Img
                       variant="top"
                       src={producto.imagen}
@@ -173,14 +178,24 @@ const InventarioClient: React.FC = () => {
                       <Card.Title className="fs-5 text-primary">
                         {producto.nombre}
                       </Card.Title>
-                      <Card.Text className="fw-bold text-dark fs-5 mt-1">
-                        Precio: ${producto.precio.toLocaleString("es-CL")}
-                      </Card.Text>
+                      {oferta ? (
+                        <div className="d-flex align-items-baseline gap-2">
+                          <span className="text-muted text-decoration-line-through">
+                            ${producto.precio.toLocaleString("es-CL")}
+                          </span>
+                          <span className="fw-bold text-success fs-5">
+                            ${oferta.linea.toLocaleString("es-CL")}
+                          </span>
+                        </div>
+                      ) : (
+                        <Card.Text className="fw-bold text-dark fs-5 mt-1">
+                          Precio: ${producto.precio.toLocaleString("es-CL")}
+                        </Card.Text>
+                      )}
                       <Card.Text className="text-muted mb-1">
                         Stock:{" "}
                         <span className="fw-bold text-info">{stock}</span>
                       </Card.Text>
-
                       {esBajoStock && (
                         <p className="text-warning fw-semibold mb-3">
                           ⚠️ Queda poco stock, ¡apresúrate!

@@ -167,3 +167,22 @@ export const comunasPorRegion: Record<string, string[]> = {
   ],
   biobio: ["Concepción", "Talcahuano", "Chillán", "Los Ángeles", "Coronel"],
 };
+
+// ========= OFERTAS POR PRODUCTO =========
+export type OfertaProducto = {
+  productId: number;
+  porcentaje: number;
+  hasta?: string;
+};
+
+export const OFERTAS_PRODUCTO: OfertaProducto[] = [
+  // Ejemplos:
+  { productId: 1, porcentaje: 15, hasta: "Fin de mes" },
+  { productId: 22, porcentaje: 10 },
+  { productId: 8, porcentaje: 25, hasta: "Cyber Week" },
+];
+
+export const getOfertaFor = (id: number): number => {
+  const o = OFERTAS_PRODUCTO.find((x) => x.productId === id);
+  return o ? o.porcentaje : 0;
+};

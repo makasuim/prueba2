@@ -92,6 +92,9 @@ const Acceso: React.FC = () => {
         "sesionActiva",
         JSON.stringify({ correo: correoAcceso, activo: true })
       );
+
+      localStorage.setItem("isLoggedIn", "1");
+      window.dispatchEvent(new Event("authChanged"));
     } else {
       setMensaje({
         texto: "Credenciales incorrectas. Verifica tu correo y contraseña.",

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Container,
   Row,
@@ -14,8 +14,8 @@ import {
 } from "react-bootstrap";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import { todosLosProductos } from "../Data";
+import { getOfertaFor } from "../Data";
 
-// --- Interfaces para tipado ---
 interface ItemCarrito {
   id: number;
   nombre: string;
@@ -30,20 +30,16 @@ interface Mensaje {
   tipo: "success" | "danger";
 }
 
-// Helper para obtener el producto de la data
 const getProductDetails = (id: number) => {
   if (!todosLosProductos || typeof todosLosProductos !== "object") {
     return null;
   }
-
   const allProducts = [
     ...(todosLosProductos.juguetes || []),
     ...(todosLosProductos.accesorios || []),
     ...(todosLosProductos.alimentos || []),
   ];
-
   const product = allProducts.find((p) => p.id === id);
-
   if (product) {
     return {
       nombre: product.nombre,
@@ -54,34 +50,26 @@ const getProductDetails = (id: number) => {
   return null;
 };
 
-// 🎯 Componente Principal
 const Pago = () => {
   const [carrito, setCarrito] = useState<ItemCarrito[]>([]);
   const [validated, setValidated] = useState(false);
   const [mensaje, setMensaje] = useState<Mensaje | null>(null);
   const [mostrarTarjeta, setMostrarTarjeta] = useState(true);
   const [stockActual, setStockActual] = useState<{ [key: number]: number }>({});
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Función de carga de datos para el useEffect
   const loadDataFromStorage = () => {
     if (typeof window === "undefined") return;
-
     const carritoStored: { id: number; cantidad: number }[] = JSON.parse(
       localStorage.getItem("carrito") || "[]"
     );
     let stockStored = JSON.parse(sessionStorage.getItem("stockActual") || "{}");
-
     const carritoDetallado: ItemCarrito[] = carritoStored
       .map((item) => {
         const details = getProductDetails(item.id);
-
         if (!details) {
-          console.warn(
-            `Producto con ID ${item.id} no encontrado en la data maestra.`
-          );
           return null;
         }
-
         return {
           id: item.id,
           cantidad: item.cantidad,
@@ -92,64 +80,60 @@ const Pago = () => {
         };
       })
       .filter((item): item is ItemCarrito => item !== null);
-
     setCarrito(carritoDetallado);
     setStockActual(stockStored);
   };
 
-  // 1. Cargar carrito y stock al montar
   useEffect(() => {
     if (typeof window === "undefined") return;
-
-    // Damos tiempo a la sincronización de localStorage/sessionStorage
     const timer = setTimeout(loadDataFromStorage, 100);
-
-    // Listener para sincronizar si el carrito cambia en OTRA pestaña
     window.addEventListener("storage", loadDataFromStorage);
-
+    setIsLoggedIn(localStorage.getItem("isLoggedIn") === "1");
+    const onAuth = () =>
+      setIsLoggedIn(localStorage.getItem("isLoggedIn") === "1");
+    window.addEventListener("authChanged", onAuth);
     return () => {
       clearTimeout(timer);
       window.removeEventListener("storage", loadDataFromStorage);
+      window.removeEventListener("authChanged", onAuth);
     };
   }, []);
 
   useEffect(() => {
     loadDataFromStorage();
-
-    // 👇 escuchamos cambios de carrito y evento personalizado
     window.addEventListener("carritoActualizado", loadDataFromStorage);
     window.addEventListener("storage", loadDataFromStorage);
-
     return () => {
       window.removeEventListener("carritoActualizado", loadDataFromStorage);
       window.removeEventListener("storage", loadDataFromStorage);
     };
   }, []);
 
-  // 2. Sincronizar carrito y stock en la memoria (ACTUALIZACIÓN DE ALMACENAMIENTO)
   useEffect(() => {
     if (typeof window === "undefined") return;
-
     const carritoToStore = carrito.map(({ id, cantidad }) => ({
       id,
       cantidad,
     }));
     localStorage.setItem("carrito", JSON.stringify(carritoToStore));
-
     sessionStorage.setItem("stockActual", JSON.stringify(stockActual));
-
-    // ❌ ELIMINADO: window.dispatchEvent(new Event('storage'));
-    // La actualización de almacenamiento ya se maneja de forma segura al inicio.
   }, [carrito, stockActual]);
 
-  // Calcular totales
-  const subtotal = carrito.reduce(
-    (sum, item) => sum + item.precio * item.cantidad,
-    0
-  );
-  const total = subtotal;
+  const { subtotal, descuento, total } = useMemo(() => {
+    let sub = 0;
+    let desc = 0;
+    for (const item of carrito) {
+      const lineSub = item.precio * item.cantidad;
+      sub += lineSub;
+      if (isLoggedIn) {
+        const off = getOfertaFor(item.id) || 0;
+        const lineDesc = Math.round(lineSub * (off / 100));
+        desc += lineDesc;
+      }
+    }
+    return { subtotal: sub, descuento: desc, total: sub - desc };
+  }, [carrito, isLoggedIn]);
 
-  // Lógica para el manejo de cantidad
   const handleCantidadChange = (id: number, nuevaCantidad: number) => {
     setCarrito((prevCarrito) => {
       const updatedCarrito = prevCarrito
@@ -157,15 +141,11 @@ const Pago = () => {
           if (item.id === id) {
             const currentQuantity = item.cantidad;
             const stock = stockActual[id] || 0;
-
             const delta = nuevaCantidad - currentQuantity;
-
-            // Eliminar si la cantidad es 0 o menor
             if (nuevaCantidad < 1) {
               handleEliminarItem(id);
               return null;
             }
-
             if (delta > 0 && stock < delta) {
               setMensaje({
                 texto: `Stock insuficiente para añadir más. Quedan ${stock} unidades.`,
@@ -173,13 +153,10 @@ const Pago = () => {
               });
               return item;
             }
-
-            // Actualizar Stock
             setStockActual((prevStock) => ({
               ...prevStock,
               [id]: (prevStock[id] || 0) - delta,
             }));
-
             return { ...item, cantidad: nuevaCantidad };
           }
           return item;
@@ -187,9 +164,7 @@ const Pago = () => {
         .filter(
           (item) => item !== null && (item as ItemCarrito).cantidad > 0
         ) as ItemCarrito[];
-
       if (updatedCarrito.length === 0) setMensaje(null);
-
       return updatedCarrito;
     });
   };
@@ -198,7 +173,6 @@ const Pago = () => {
     setCarrito((prevCarrito) => {
       const itemToRemove = prevCarrito.find((item) => item.id === id);
       if (itemToRemove) {
-        // Devolver la cantidad al stock
         setStockActual((prevStock) => ({
           ...prevStock,
           [id]: (prevStock[id] || 0) + itemToRemove.cantidad,
@@ -211,7 +185,6 @@ const Pago = () => {
   const handleConfirmarPago = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setValidated(true);
-
     const form = e.currentTarget;
     if (!form.checkValidity()) {
       setMensaje({
@@ -221,7 +194,6 @@ const Pago = () => {
       });
       return;
     }
-
     if (carrito.length === 0) {
       setMensaje({
         texto: "Tu carrito está vacío. Agrega productos para pagar.",
@@ -229,32 +201,26 @@ const Pago = () => {
       });
       return;
     }
-
     setMensaje({
       texto: `¡Compra exitosa! Total pagado: $${total.toLocaleString(
         "es-CL"
       )}. Gracias por tu compra.`,
       tipo: "success",
     });
-
-    // Limpieza después de la compra
     setCarrito([]);
     localStorage.removeItem("carrito");
     setValidated(false);
   };
 
-  // Renderizado del Item del Carrito
   const renderCartItem = (item: ItemCarrito) => {
     const itemTotal = (item.precio * item.cantidad).toLocaleString("es-CL");
     const isOutOfStock = stockActual[item.id] <= 0;
-
     return (
       <Card
         key={item.id}
         className="p-2 shadow-sm d-flex flex-row align-items-center justify-content-between"
         style={{ backgroundColor: "#f3e8ff", border: "none" }}
       >
-        {/* 1. Imagen y Nombre/Precio por Unidad */}
         <div className="d-flex align-items-center me-auto">
           <img
             src={item.imagen}
@@ -279,10 +245,7 @@ const Pago = () => {
             </small>
           </div>
         </div>
-
-        {/* 2. Controles, Total y Botón Eliminar (Alineados a la derecha) */}
         <div className="d-flex align-items-center gap-2">
-          {/* Controles de Cantidad (- X +) */}
           <Button
             variant="outline-danger"
             onClick={() => handleCantidadChange(item.id, item.cantidad - 1)}
@@ -308,10 +271,7 @@ const Pago = () => {
           >
             <i className="fas fa-plus"></i>
           </Button>
-
-          {/* Precio Total y Botón Eliminar */}
           <span className="fw-bold text-dark ms-3 me-2">${itemTotal}</span>
-
           <Button
             variant="danger"
             onClick={() => handleEliminarItem(item.id)}
@@ -339,7 +299,6 @@ const Pago = () => {
           {mensaje.texto}
         </Alert>
       )}
-
       <Row className="justify-content-center">
         <Col lg={8}>
           <Card className="shadow-lg">
@@ -351,7 +310,6 @@ const Pago = () => {
             <div className="card-body p-4">
               <section id="resumenCompra" className="mb-4">
                 <h5 className="mb-3 text-primary">Artículos en tu Carrito</h5>
-
                 {carrito.length === 0 ? (
                   <Alert variant="info" className="text-center">
                     No hay productos en el carrito para pagar.
@@ -362,19 +320,32 @@ const Pago = () => {
                   </div>
                 )}
 
-                {/* Total a Pagar en UNA SOLA LÍNEA y Centrado */}
-                <Button
-                  variant="primary"
-                  className="w-100 py-3 fw-bold fs-4 text-center"
-                  disabled={carrito.length === 0}
-                  style={{
-                    background: "var(--primary-color)",
-                    color: "var(--secondary-color)",
-                    border: "none",
-                  }}
-                >
-                  Total a pagar: ${total.toLocaleString("es-CL")}
-                </Button>
+                <Card className="border-0 shadow-sm">
+                  <Card.Body>
+                    <div className="d-flex justify-content-between">
+                      <span>Subtotal</span>
+                      <span>${subtotal.toLocaleString("es-CL")}</span>
+                    </div>
+                    <div className="d-flex justify-content-between">
+                      <span>
+                        Descuento{" "}
+                        {isLoggedIn ? "(ofertas aplicadas)" : "(inicia sesión)"}
+                      </span>
+                      <span
+                        className={isLoggedIn ? "text-success" : "text-muted"}
+                      >
+                        {isLoggedIn
+                          ? `- $${descuento.toLocaleString("es-CL")}`
+                          : "—"}
+                      </span>
+                    </div>
+                    <hr />
+                    <div className="d-flex justify-content-between fw-bold fs-5">
+                      <span>Total</span>
+                      <span>${total.toLocaleString("es-CL")}</span>
+                    </div>
+                  </Card.Body>
+                </Card>
               </section>
 
               <Form
