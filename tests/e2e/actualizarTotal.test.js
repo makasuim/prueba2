@@ -14,13 +14,10 @@ const sel = {
   linkProductos: By.xpath("//a[contains(.,'Productos')]"),
   anyAddBtn: By.xpath("(//button[contains(.,'Añadir') or contains(.,'Agregar')])[1]"),
   linkCarrito: By.xpath("//a[contains(.,'Mi carrito') or contains(.,'carrito')]"),
-  btnTotal: By.xpath("//button[contains(.,'Total a pagar')]"),
-  plusBtnAny: By.xpath("(//button[.//i[contains(@class,'fa-plus')]])[1]")
+  deleteBtns: By.xpath("//button[.//i[contains(@class,'fa-times')]]")
 };
 
-const parseCLP = (t) => Number((t || "").replace(/[^\d]/g, "") || 0);
-
-describe("Actualización de total al cambiar cantidad", function () {
+describe("Eliminar producto del carrito", function () {
   this.timeout(60000);
   let driver;
 
@@ -32,7 +29,7 @@ describe("Actualización de total al cambiar cantidad", function () {
     if (driver) await driver.quit();
   });
 
-  it("El total (o subtotal) cambia al sumar una unidad", async function () {
+  it("Elimina correctamente un producto del carrito", async function () {
     await driver.get(BASE_URL);
 
     await driver.wait(until.elementLocated(sel.linkProductos), 15000);
@@ -44,23 +41,20 @@ describe("Actualización de total al cambiar cantidad", function () {
     await driver.wait(until.elementLocated(sel.linkCarrito), 15000);
     await driver.findElement(sel.linkCarrito).click();
 
-    await driver.wait(until.elementLocated(sel.btnTotal), 15000);
-    const beforeTxt = await driver.findElement(sel.btnTotal).getText();
-    const beforeVal = parseCLP(beforeTxt);
+    await driver.wait(until.elementLocated(sel.deleteBtns), 15000);
+    let before = (await driver.findElements(sel.deleteBtns)).length;
+    if (!before) throw new Error("No hay items en el carrito");
 
-    await driver.wait(until.elementLocated(sel.plusBtnAny), 15000);
-    await driver.findElement(sel.plusBtnAny).click();
+    await driver.findElement(sel.deleteBtns).click();
 
     await driver.wait(async () => {
-      const nowTxt = await driver.findElement(sel.btnTotal).getText();
-      return parseCLP(nowTxt) > beforeVal;
+      const count = (await driver.findElements(sel.deleteBtns)).length;
+      return count < before;
     }, 15000);
 
-    const afterTxt = await driver.findElement(sel.btnTotal).getText();
-    const afterVal = parseCLP(afterTxt);
-
-    if (!(afterVal > beforeVal)) {
-      throw new Error(`Esperaba after(${afterVal}) > before(${beforeVal})`);
+    const after = (await driver.findElements(sel.deleteBtns)).length;
+    if (!(after < before)) {
+      throw new Error(`Esperaba after(${after}) < before(${before})`);
     }
   });
 });
