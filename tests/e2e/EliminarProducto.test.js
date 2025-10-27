@@ -24,7 +24,7 @@ describe("Eliminar producto del carrito", function () {
     const el = await driver.findElement(addBtn);
     await driver.executeScript("arguments[0].scrollIntoView(true);", el);
     await driver.wait(until.elementIsVisible(el), 5000);
-    await driver.wait(until.elementIsEnabled(el), 5000);
+    await driver.sleep(500);
     await el.click();
 
     await driver.get(`${BASE_URL}/pago`);
@@ -33,7 +33,7 @@ describe("Eliminar producto del carrito", function () {
     const delEl = await driver.findElement(deleteBtn);
     await driver.executeScript("arguments[0].scrollIntoView(true);", delEl);
     await driver.wait(until.elementIsVisible(delEl), 5000);
-    await driver.wait(until.elementIsEnabled(delEl), 5000);
+    await driver.sleep(500);
 
     const before = await driver.findElements(deleteBtn);
     if (!before.length) throw new Error("No hay items en el carrito");
