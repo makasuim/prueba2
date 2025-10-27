@@ -19,27 +19,30 @@ describe("Actualización de total al cambiar cantidad", function () {
 
   it("El total (o subtotal) cambia al sumar una unidad", async function () {
     await driver.get(`${BASE_URL}/inventario`);
-
-    const anyAddBtn = By.xpath("(//button[contains(.,'Añadir') or contains(.,'Agregar')])[1]");
-    await driver.wait(until.elementLocated(anyAddBtn), 15000);
-    await driver.findElement(anyAddBtn).click();
+    const addBtn = By.xpath("(//button[contains(.,'Añadir') or contains(.,'Agregar')])[1]");
+    await driver.wait(until.elementLocated(addBtn), 15000);
+    const el = await driver.findElement(addBtn);
+    await driver.executeScript("arguments[0].scrollIntoView(true);", el);
+    await driver.wait(until.elementIsVisible(el), 5000);
+    await driver.wait(until.elementIsEnabled(el), 5000);
+    await el.click();
 
     await driver.get(`${BASE_URL}/pago`);
-
     const totalBtn = By.xpath("//button[contains(.,'Total a pagar')]");
     await driver.wait(until.elementLocated(totalBtn), 15000);
-
     const readTotal = async () => {
       const txt = await driver.findElement(totalBtn).getText();
       const n = parseInt(txt.replace(/[^\d]/g, ""), 10);
       return Number.isNaN(n) ? 0 : n;
     };
-
     const before = await readTotal();
 
     const plusBtn = By.xpath("(//button[.//i[contains(@class,'fa-plus')]])[1]");
-    await driver.wait(until.elementLocated(plusBtn), 15000);
-    await driver.findElement(plusBtn).click();
+    const plusEl = await driver.findElement(plusBtn);
+    await driver.executeScript("arguments[0].scrollIntoView(true);", plusEl);
+    await driver.wait(until.elementIsVisible(plusEl), 5000);
+    await driver.wait(until.elementIsEnabled(plusEl), 5000);
+    await plusEl.click();
 
     await driver.wait(async () => {
       const now = await readTotal();
