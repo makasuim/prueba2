@@ -1,7 +1,50 @@
-const { Builder, By, until, Key } = require("selenium-webdriver");
+const { Builder, By, until } = require("selenium-webdriver");
 const chrome = require("selenium-webdriver/chrome");
 
 const BASE_URL = process.env.BASE_URL || "https://prueba-finalmente.vercel.app";
+
+async function clickSmart(driver, el) {
+  await driver.executeScript("arguments[0].scrollIntoView({block:'center'});", el);
+  await driver.wait(until.elementIsVisible(el), 10000);
+  await driver.wait(until.elementIsEnabled(el), 10000);
+  try {
+    await driver.actions({ bridge: true }).move({ origin: el }).click().perform();
+    return;
+  } catch {}
+  try {
+    await el.click();
+    return;
+  } catch {}
+  await driver.executeScript("window.scrollBy(0, -120);");
+  await driver.sleep(150);
+  try {
+    await el.click();
+    return;
+  } catch {}
+  await driver.executeScript("arguments[0].click();", el);
+}
+
+async function byText(driver, variants, tag = "*", timeout = 30000) {
+  for (const v of variants) {
+    const xp = `//${tag}[contains(normalize-space(.),'${v}')]`;
+    try {
+      const loc = By.xpath(xp);
+      await driver.wait(until.elementLocated(loc), timeout);
+      return await driver.findElement(loc);
+    } catch {}
+  }
+  return null;
+}
+
+async function inputAfterLabel(driver, labelVariants) {
+  for (const v of labelVariants) {
+    const xp = `//label[contains(normalize-space(.),'${v}')]/following::input[1]`;
+    const els = await driver.findElements(By.xpath(xp));
+    if (els.length) return els[0];
+  }
+  const all = await driver.findElements(By.css("form input"));
+  return all.length ? all[0] : null;
+}
 
 async function fillRequiredFields(driver, email, pass, nombre) {
   const form = await driver.findElement(By.css("form"));
@@ -11,7 +54,7 @@ async function fillRequiredFields(driver, email, pass, nombre) {
     const name = (await el.getAttribute("name")) || "";
     await driver.executeScript("arguments[0].scrollIntoView({block:'center'});", el);
     if (type === "checkbox") {
-      const checked = await el.getAttribute("checked");
+      const checked = await el.isSelected();
       if (!checked) await el.click();
       continue;
     }
@@ -21,38 +64,24 @@ async function fillRequiredFields(driver, email, pass, nombre) {
       continue;
     }
     if (type === "email") {
-      await el.clear();
-      await el.sendKeys(email);
-      continue;
+      await el.clear(); await el.sendKeys(email); continue;
     }
     if (type === "password") {
-      await el.clear();
-      await el.sendKeys(pass);
-      continue;
+      await el.clear(); await el.sendKeys(pass); continue;
     }
     if (type === "tel") {
-      await el.clear();
-      await el.sendKeys("+56 9 1234 5678");
-      continue;
+      await el.clear(); await el.sendKeys("+56 9 1234 5678"); continue;
     }
     if (type === "number") {
-      await el.clear();
-      await el.sendKeys("1");
-      continue;
+      await el.clear(); await el.sendKeys("1"); continue;
     }
     await el.clear();
     const hint = (name || "").toLowerCase();
-    if (hint.includes("name") || hint.includes("nombre")) {
-      await el.sendKeys(nombre);
-    } else if (hint.includes("mail")) {
-      await el.sendKeys(email);
-    } else if (hint.includes("pass") || hint.includes("contra")) {
-      await el.sendKeys(pass);
-    } else if (hint.includes("dir")) {
-      await el.sendKeys("Calle Falsa 123");
-    } else {
-      await el.sendKeys("OK");
-    }
+    if (hint.includes("name") || hint.includes("nombre")) await el.sendKeys(nombre);
+    else if (hint.includes("mail")) await el.sendKeys(email);
+    else if (hint.includes("pass") || hint.includes("contra")) await el.sendKeys(pass);
+    else if (hint.includes("dir")) await el.sendKeys("Calle Falsa 123");
+    else await el.sendKeys("OK");
   }
   const selects = await form.findElements(By.css("select[required]"));
   for (const s of selects) {
@@ -72,8 +101,7 @@ async function clickSubmit(driver) {
   const formButtons = await driver.findElements(By.css("form button[type='submit'], form button"));
   if (formButtons.length) {
     const btn = formButtons[0];
-    await driver.executeScript("arguments[0].scrollIntoView({block:'center'});", btn);
-    await btn.click();
+    await clickSmart(driver, btn);
     return;
   }
   const candidates = [
@@ -85,8 +113,7 @@ async function clickSubmit(driver) {
   for (const xp of candidates) {
     const found = await driver.findElements(By.xpath(xp));
     if (found.length) {
-      await driver.executeScript("arguments[0].scrollIntoView({block:'center'});", found[0]);
-      await found[0].click();
+      await clickSmart(driver, found[0]);
       return;
     }
   }
@@ -114,10 +141,26 @@ describe("Registro y acceso", function () {
   it("Registra y luego accede correctamente", async function () {
     await driver.get(`${BASE_URL}/`);
     await driver.executeScript("localStorage.clear(); sessionStorage.clear();");
+
     await driver.get(`${BASE_URL}/registro`);
     await driver.sleep(700);
 
-    await fillRequiredFields(driver, email, pass, nombre);
+    const nombreInput = (await inputAfterLabel(driver, ["Nombre Completo", "Nombre"])) || (await driver.findElement(By.css("input[type='text']")));
+    await driver.executeScript("arguments[0].scrollIntoView({block:'center'});", nombreInput);
+    await nombreInput.clear(); await nombreInput.sendKeys(nombre);
+
+    const emailInput =
+      (await inputAfterLabel(driver, ["Correo", "Correo Electrónico", "Email"])) ||
+      (await driver.findElement(By.css("input[type='email'], input[name*='mail' i]")));
+    await driver.executeScript("arguments[0].scrollIntoView({block:'center'});", emailInput);
+    await emailInput.clear(); await emailInput.sendKeys(email);
+
+    const passInput =
+      (await inputAfterLabel(driver, ["Contraseña", "Password"])) ||
+      (await driver.findElement(By.css("input[type='password']")));
+    await driver.executeScript("arguments[0].scrollIntoView({block:'center'});", passInput);
+    await passInput.clear(); await passInput.sendKeys(pass);
+
     await clickSubmit(driver);
     await driver.sleep(1000);
 
@@ -164,8 +207,7 @@ describe("Registro y acceso", function () {
       if (found.length) { submitLogin = found[0]; break; }
     }
     if (!submitLogin) throw new Error("No se encontró botón de envío en acceso");
-    await driver.executeScript("arguments[0].scrollIntoView({block:'center'});", submitLogin);
-    await submitLogin.click();
+    await clickSmart(driver, submitLogin);
     await driver.sleep(900);
 
     const sessionStr = await driver.executeScript("return sessionStorage.getItem('sesionActiva') || '';");
