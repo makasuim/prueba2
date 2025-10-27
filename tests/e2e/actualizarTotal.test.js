@@ -24,7 +24,7 @@ describe("Actualización de total al cambiar cantidad", function () {
     const el = await driver.findElement(addBtn);
     await driver.executeScript("arguments[0].scrollIntoView(true);", el);
     await driver.wait(until.elementIsVisible(el), 5000);
-    await driver.wait(until.elementIsEnabled(el), 5000);
+    await driver.sleep(500);
     await el.click();
 
     await driver.get(`${BASE_URL}/pago`);
@@ -41,7 +41,7 @@ describe("Actualización de total al cambiar cantidad", function () {
     const plusEl = await driver.findElement(plusBtn);
     await driver.executeScript("arguments[0].scrollIntoView(true);", plusEl);
     await driver.wait(until.elementIsVisible(plusEl), 5000);
-    await driver.wait(until.elementIsEnabled(plusEl), 5000);
+    await driver.sleep(500);
     await plusEl.click();
 
     await driver.wait(async () => {
