@@ -5,8 +5,7 @@ import { Col, Card, Button, Alert, Dropdown } from "react-bootstrap";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-import { todosLosProductos, Producto } from "../Data";
-import { getOfertaFor } from "../Data";
+import { todosLosProductos, Producto, getOfertaFor } from "../Data";
 
 const getProductsMap = (): Map<number, Producto> => {
   const map = new Map<number, Producto>();
@@ -40,25 +39,18 @@ const InventarioClient: React.FC = () => {
     [key: number]: number;
   }>({});
   const [stockActual, setStockActual] = useState<{ [key: number]: number }>({});
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const initialStock: { [key: number]: number } = {};
     let storedStock = JSON.parse(sessionStorage.getItem("stockActual") || "{}");
     productDataMap.forEach((product) => {
-      if (storedStock[product.id] === undefined) {
-        initialStock[product.id] = product.stock;
-      } else {
-        initialStock[product.id] = storedStock[product.id];
-      }
+      initialStock[product.id] =
+        storedStock[product.id] === undefined
+          ? product.stock
+          : storedStock[product.id];
     });
     setStockActual(initialStock);
     sessionStorage.setItem("stockActual", JSON.stringify(initialStock));
-    setIsLoggedIn(localStorage.getItem("isLoggedIn") === "1");
-    const onAuth = () =>
-      setIsLoggedIn(localStorage.getItem("isLoggedIn") === "1");
-    window.addEventListener("authChanged", onAuth);
-    return () => window.removeEventListener("authChanged", onAuth);
   }, []);
 
   useEffect(() => {
@@ -93,31 +85,38 @@ const InventarioClient: React.FC = () => {
       setTimeout(() => setMensaje(null), 3000);
       return;
     }
+
     const currentStock = stockActual[producto.id] || 0;
     if (cantidad > currentStock) {
       setMensaje({
-        texto: `Error: No hay suficiente stock disponible. Solo quedan ${currentStock}.`,
+        texto: `Solo quedan ${currentStock} unidades disponibles.`,
         tipo: "danger",
       });
-      setTimeout(() => setMensaje(null), 4000);
+      setTimeout(() => setMensaje(null), 3000);
       return;
     }
+
     let carrito = JSON.parse(localStorage.getItem("carrito") || "[]");
     const itemExistenteIndex = carrito.findIndex(
       (item: any) => item.id === producto.id
     );
+
     if (itemExistenteIndex > -1) {
       carrito[itemExistenteIndex].cantidad += cantidad;
     } else {
-      carrito.push({ id: producto.id, cantidad: cantidad });
+      carrito.push({ id: producto.id, cantidad });
     }
+
     localStorage.setItem("carrito", JSON.stringify(carrito));
     window.dispatchEvent(new CustomEvent("carritoActualizado"));
-    setStockActual((prevStock) => ({
-      ...prevStock,
-      [producto.id]: prevStock[producto.id] - cantidad,
+
+    setStockActual((prev) => ({
+      ...prev,
+      [producto.id]: prev[producto.id] - cantidad,
     }));
+
     setCantidadesSeleccionadas((prev) => ({ ...prev, [producto.id]: 0 }));
+
     setMensaje({
       texto: `Se añadieron ${cantidad} unidades de "${producto.nombre}" al carrito.`,
       tipo: "success",
@@ -133,47 +132,51 @@ const InventarioClient: React.FC = () => {
   };
 
   const cambiarCategoria = (key: string | null) => {
-    if (!key || key === "todos") {
-      router.push("/inventario");
-    } else {
-      router.push(`/inventario?categoria=${key}`);
-    }
+    if (!key || key === "todos") router.push("/inventario");
+    else router.push(`/inventario?categoria=${key}`);
   };
 
   return (
     <main className="container my-5 flex-grow-1">
-      <div className="d-flex align-items-center justify-content-between mb-4">
+      <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap">
         <h2 id="tituloCategoria" className="m-0 text-primary fw-bold">
           {titulo}
         </h2>
-        <Dropdown align="end" onSelect={cambiarCategoria}>
-          <Dropdown.Toggle variant="light" className="border-0">
-            <i className="fas fa-ellipsis-v"></i>
-          </Dropdown.Toggle>
-          <Dropdown.Menu>
-            <Dropdown.Item eventKey="todos" active={!categoriaQuery}>
-              Todos
-            </Dropdown.Item>
-            <Dropdown.Item
-              eventKey="juguetes"
-              active={categoriaQuery === "juguetes"}
+
+        <div className="d-flex align-items-center gap-2">
+          <span className="fw-semibold text-muted small">Filtrar por:</span>
+          <Dropdown align="end" onSelect={cambiarCategoria}>
+            <Dropdown.Toggle
+              variant="light"
+              className="border-0 shadow-sm py-1 px-2 rounded-3"
             >
-              Juguetes
-            </Dropdown.Item>
-            <Dropdown.Item
-              eventKey="accesorios"
-              active={categoriaQuery === "accesorios"}
-            >
-              Accesorios
-            </Dropdown.Item>
-            <Dropdown.Item
-              eventKey="alimentos"
-              active={categoriaQuery === "alimentos"}
-            >
-              Alimentos
-            </Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown>
+              <i className="fas fa-ellipsis-v"></i>
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item eventKey="todos" active={!categoriaQuery}>
+                Todos
+              </Dropdown.Item>
+              <Dropdown.Item
+                eventKey="juguetes"
+                active={categoriaQuery === "juguetes"}
+              >
+                Juguetes
+              </Dropdown.Item>
+              <Dropdown.Item
+                eventKey="accesorios"
+                active={categoriaQuery === "accesorios"}
+              >
+                Accesorios
+              </Dropdown.Item>
+              <Dropdown.Item
+                eventKey="alimentos"
+                active={categoriaQuery === "alimentos"}
+              >
+                Alimentos
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+        </div>
       </div>
 
       {mensaje && (
@@ -185,60 +188,59 @@ const InventarioClient: React.FC = () => {
       <div id="contenedorInventario" className="row g-4">
         {productosFiltrados.map((producto) => {
           const stock = stockActual[producto.id] || 0;
-          const cantidadSeleccionada =
-            cantidadesSeleccionadas[producto.id] || 0;
-          const esBajoStock = stock > 0 && stock < 3;
+          const cantidad = cantidadesSeleccionadas[producto.id] || 0;
           const oferta = precioConOferta(producto);
+          const esBajoStock = stock > 0 && stock < 3;
 
           return (
             <Col xs={12} sm={6} md={4} lg={3} key={producto.id}>
-              <Card className="h-100 shadow-sm border-0 rounded-lg overflow-hidden product-card d-flex flex-column">
-                <Link href={`/detalle/${producto.id}`} passHref legacyBehavior>
-                  <a className="text-decoration-none text-dark d-block position-relative">
-                    {oferta && (
-                      <span
-                        className="position-absolute top-0 start-0 m-2 badge bg-danger"
-                        style={{ zIndex: 2 }}
-                      >
-                        -{oferta.off}%
-                      </span>
-                    )}
-                    <Card.Img
-                      variant="top"
-                      src={producto.imagen}
-                      alt={producto.nombre}
-                      className="card-img-top"
-                      style={{ height: "200px", objectFit: "contain" }}
-                    />
-                    <Card.Body className="d-flex flex-column pb-0">
-                      <Card.Title className="fs-5 text-primary">
-                        {producto.nombre}
-                      </Card.Title>
-                      {oferta ? (
-                        <div className="d-flex align-items-baseline gap-2">
-                          <span className="text-muted text-decoration-line-through">
-                            ${producto.precio.toLocaleString("es-CL")}
-                          </span>
-                          <span className="fw-bold text-success fs-5">
-                            ${oferta.linea.toLocaleString("es-CL")}
-                          </span>
-                        </div>
-                      ) : (
-                        <Card.Text className="fw-bold text-dark fs-5 mt-1">
-                          Precio: ${producto.precio.toLocaleString("es-CL")}
-                        </Card.Text>
-                      )}
-                      <Card.Text className="text-muted mb-1">
-                        Stock:{" "}
-                        <span className="fw-bold text-info">{stock}</span>
+              <Card className="h-100 shadow-sm border-0 rounded-4 d-flex flex-column">
+                <Link
+                  href={`/detalle/${producto.id}`}
+                  className="text-decoration-none text-dark position-relative"
+                >
+                  {oferta && (
+                    <span className="position-absolute top-0 start-0 m-2 badge bg-danger">
+                      -{oferta.off}%
+                    </span>
+                  )}
+                  <Card.Img
+                    variant="top"
+                    src={producto.imagen}
+                    alt={producto.nombre}
+                    className="card-img-top"
+                    style={{ height: "200px", objectFit: "contain" }}
+                  />
+                  <Card.Body className="d-flex flex-column pb-0">
+                    <Card.Title className="fs-6 fw-semibold text-primary">
+                      {producto.nombre}
+                    </Card.Title>
+
+                    {oferta ? (
+                      <div className="d-flex align-items-baseline gap-2">
+                        <span className="text-muted text-decoration-line-through">
+                          ${producto.precio.toLocaleString("es-CL")}
+                        </span>
+                        <span className="fw-bold text-success fs-6">
+                          ${oferta.linea.toLocaleString("es-CL")}
+                        </span>
+                      </div>
+                    ) : (
+                      <Card.Text className="fw-bold text-dark fs-6 mt-1">
+                        Precio: ${producto.precio.toLocaleString("es-CL")}
                       </Card.Text>
-                      {esBajoStock && (
-                        <p className="text-warning fw-semibold mb-3">
-                          ⚠️ Queda poco stock, ¡apresúrate!
-                        </p>
-                      )}
-                    </Card.Body>
-                  </a>
+                    )}
+
+                    <Card.Text className="text-muted mb-1">
+                      Stock: <span className="fw-bold text-info">{stock}</span>
+                    </Card.Text>
+
+                    {esBajoStock && (
+                      <p className="text-warning fw-semibold mb-3">
+                        ⚠️ Queda poco stock
+                      </p>
+                    )}
+                  </Card.Body>
                 </Link>
 
                 <div className="p-3 pt-0 mt-auto w-100">
@@ -248,23 +250,23 @@ const InventarioClient: React.FC = () => {
                       size="sm"
                       className="rounded-pill"
                       onClick={() =>
-                        handleSetCantidad(producto.id, cantidadSeleccionada - 1)
+                        handleSetCantidad(producto.id, cantidad - 1)
                       }
-                      disabled={cantidadSeleccionada === 0}
+                      disabled={cantidad === 0}
                     >
                       <i className="fas fa-minus"></i>
                     </Button>
-                    <span className="fw-bold fs-5 text-dark px-2">
-                      {cantidadSeleccionada}
+                    <span className="fw-bold fs-6 text-dark px-2">
+                      {cantidad}
                     </span>
                     <Button
                       variant="outline-primary"
                       size="sm"
                       className="rounded-pill"
                       onClick={() =>
-                        handleSetCantidad(producto.id, cantidadSeleccionada + 1)
+                        handleSetCantidad(producto.id, cantidad + 1)
                       }
-                      disabled={cantidadSeleccionada >= stock || stock === 0}
+                      disabled={cantidad >= stock || stock === 0}
                     >
                       <i className="fas fa-plus"></i>
                     </Button>
@@ -273,10 +275,8 @@ const InventarioClient: React.FC = () => {
                   <Button
                     variant="primary"
                     className="w-100 btn-sm"
-                    onClick={() =>
-                      agregarAlCarrito(producto, cantidadSeleccionada)
-                    }
-                    disabled={cantidadSeleccionada === 0}
+                    onClick={() => agregarAlCarrito(producto, cantidad)}
+                    disabled={cantidad === 0}
                   >
                     Añadir
                   </Button>

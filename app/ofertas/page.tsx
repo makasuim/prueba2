@@ -9,7 +9,6 @@ import { getOfertaFor } from "../Data";
 const OfertasPage: React.FC = () => {
   const router = useRouter();
 
-  // Mostrar siempre las ofertas, sin importar si hay sesión
   const productosConOferta = useMemo(() => {
     const all = [
       ...todosLosProductos.juguetes,
