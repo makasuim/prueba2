@@ -1,77 +1,80 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Container, Card, Button } from "react-bootstrap";
+import { Row, Col, Card, Button } from "react-bootstrap";
 import Link from "next/link";
-import { todosLosProductos, Producto } from "../app/Data";
-import { getOfertaFor } from "../app/Data";
+import { todosLosProductos, getOfertaFor, Producto } from "../app/Data";
+import Slider from "react-slick";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
-// --- Productos destacados (solo un par de cada categoría)
-const getFeaturedProducts = (
-  productos: typeof todosLosProductos
-): Producto[] => {
-  const featured: Producto[] = [];
-  featured.push(...productos.juguetes.slice(0, 3));
-  featured.push(...productos.accesorios.slice(0, 3));
-  featured.push(...productos.alimentos.slice(0, 3));
-  return featured;
+const PrevArrow = (props: any) => {
+  const { onClick } = props;
+  return (
+    <button
+      aria-label="Anterior"
+      className="kp-arrow kp-arrow-prev"
+      onClick={onClick}
+      type="button"
+    >
+      <i className="fas fa-chevron-left" />
+    </button>
+  );
 };
 
-// --- Productos con oferta
-const getOfferProducts = (productos: typeof todosLosProductos): Producto[] => {
-  const allProducts = [
-    ...productos.juguetes,
-    ...productos.accesorios,
-    ...productos.alimentos,
-  ];
-  return allProducts.filter((p) => getOfertaFor(p.id) > 0).slice(0, 5);
+const NextArrow = (props: any) => {
+  const { onClick } = props;
+  return (
+    <button
+      aria-label="Siguiente"
+      className="kp-arrow kp-arrow-next"
+      onClick={onClick}
+      type="button"
+    >
+      <i className="fas fa-chevron-right" />
+    </button>
+  );
 };
 
-const Home: React.FC = () => {
-  const [loading, setLoading] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // --- Generar listas separadas con y sin oferta
-  const allProducts = [
+const getFeaturedProducts = (): Producto[] => {
+  const all = [
     ...todosLosProductos.juguetes,
     ...todosLosProductos.accesorios,
     ...todosLosProductos.alimentos,
   ];
+  return all.slice(0, 10);
+};
 
-  // Productos con y sin oferta reales
-  const offers = allProducts.filter((p) => getOfertaFor(p.id) > 0);
-  const noOffers = allProducts.filter((p) => getOfertaFor(p.id) === 0);
+const Home: React.FC = () => {
+  const [loading, setLoading] = useState(true);
 
-  // Igualar cantidad
-  const minCount = Math.min(offers.length, noOffers.length);
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 1000);
+    return () => clearTimeout(t);
+  }, []);
 
-  // Intercalar: uno con oferta, uno sin oferta
-  const intercalado: Producto[] = [];
-  for (let i = 0; i < minCount; i++) {
-    intercalado.push(noOffers[i]);
-    intercalado.push(offers[i]);
-  }
+  const productosDestacados = getFeaturedProducts();
 
-  // Eliminar duplicados por ID, por seguridad
-  const productosCarrusel = Array.from(
-    new Map(intercalado.map((p) => [p.id, p])).values()
-  );
-
-  // --- Funciones de navegación tipo loop
-  const prevSlide = () => {
-    setCurrentIndex(
-      (prev) => (prev - 1 + productosCarrusel.length) % productosCarrusel.length
-    );
-  };
-
-  const nextSlide = () => {
-    setCurrentIndex((prev) => (prev + 1) % productosCarrusel.length);
+  const settings = {
+    dots: false,
+    infinite: true,
+    speed: 500,
+    centerMode: true, // central siempre visible
+    centerPadding: "0px",
+    slidesToShow: 3, // ⇦ ahora 3 en desktop
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 3000,
+    arrows: true,
+    prevArrow: <PrevArrow />,
+    nextArrow: <NextArrow />,
+    responsive: [
+      // tablets → 2 (sin center para que no se rompa)
+      { breakpoint: 992, settings: { slidesToShow: 2, centerMode: false } },
+      // móviles → 1
+      { breakpoint: 576, settings: { slidesToShow: 1, centerMode: false } },
+    ],
   };
 
   if (loading) {
@@ -82,165 +85,159 @@ const Home: React.FC = () => {
     );
   }
 
-  // --- Muestra 5 productos (2 izq + 1 centro + 2 der)
-  const getVisibleProducts = (): Producto[] => {
-    const visible: Producto[] = [];
-    const len = productosCarrusel.length;
-    for (let offset = -2; offset <= 2; offset++) {
-      const idx = (currentIndex + offset + len) % len;
-      visible.push(productosCarrusel[idx]);
-    }
-    return visible;
-  };
-
-  const visibleProducts = getVisibleProducts();
-
   return (
     <main role="main" className="container my-5">
-      {/* Hero */}
       <section className="hero-section text-center mb-5">
-        <h2 className="display-4 fw-bold text-primary mb-3">
+        <h2 className="display-5 fw-bold text-primary mb-3">
           Bienvenido a KittyPatitasSuaves
         </h2>
-        <p className="lead text-muted mb-4">
+        <p className="lead text-muted mb-3">
           Tu tienda especializada en juguetes innovadores y entretenidos para
           mascotas.
         </p>
-
         <Link href="/inventario" passHref legacyBehavior>
           <a className="hero-image-link d-inline-block">
             <img
               src="img/Banner Tienda Online Mercado Shop Mascotas Curvo Celeste y Azul.png"
-              alt="Explorar todos los productos de KittyPatitasSuaves"
-              className="img-fluid rounded shadow-lg hero-banner-clickable"
+              alt="Explorar todos los productos"
+              className="img-fluid rounded shadow-lg"
             />
           </a>
         </Link>
       </section>
 
-      {/* Carrusel combinado */}
-      <section className="mb-5 text-center">
-        <h3 className="text-primary mb-5 mt-4">Destacados y Ofertas</h3>
-
-        <div className="d-flex justify-content-center align-items-center position-relative">
-          <Button
-            variant="outline-primary"
-            className="position-absolute start-0 top-50 translate-middle-y"
-            onClick={prevSlide}
-          >
-            <i className="fas fa-chevron-left"></i>
-          </Button>
-
-          <div
-            className="d-flex justify-content-center align-items-center flex-nowrap"
-            style={{
-              width: "88%",
-              margin: "0 auto",
-              marginTop: "2.5rem",
-              gap: "26px",
-              overflow: "visible",
-            }}
-          >
-            {visibleProducts.map((producto, i) => {
-              const oferta = getOfertaFor(producto.id);
-              const precioOferta = oferta
-                ? Math.round(producto.precio - producto.precio * (oferta / 100))
-                : null;
-
-              const esCentral = i === 2; // producto central
-              const ancho = 190; // todos ocupan mismo ancho
-              const altoImg = esCentral ? 220 : 180;
-              const scale = esCentral ? 1.12 : 1;
-              const sombra = esCentral
-                ? "0 15px 35px rgba(120, 0, 255, 0.25)"
-                : "0 8px 18px rgba(0,0,0,0.1)";
+      <section className="kp-destacados mb-5 text-center">
+        <h3 className="text-primary mb-4 fw-bold">Destacados y Ofertas</h3>
+        <div className="kp-slider-wrap">
+          <Slider {...settings}>
+            {productosDestacados.map((p) => {
+              const oferta = getOfertaFor(p.id);
+              const precioFinal = oferta
+                ? p.precio - p.precio * (oferta / 100)
+                : p.precio;
 
               return (
-                <div
-                  key={producto.id}
-                  style={{
-                    flex: "0 0 auto",
-                    width: `${ancho}px`,
-                    transition: "transform 0.4s ease, box-shadow 0.4s ease",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
+                <div key={p.id} className="px-2">
                   <Link
-                    href={`/detalle/${producto.id}`}
-                    passHref
-                    legacyBehavior
+                    href={`/detalle/${p.id}`}
+                    className="text-decoration-none"
+                    style={{ color: "inherit" }}
                   >
-                    <a className="d-block text-center text-dark">
-                      <Card
-                        className="border-0 h-100"
-                        style={{
-                          borderRadius: "12px",
-                          boxShadow: sombra,
-                          transform: `scale(${scale}) translateY(${
-                            esCentral ? "-8px" : "0"
-                          })`,
-                          backgroundColor: "#fff",
-                          transition: "all 0.4s ease",
-                          zIndex: esCentral ? 5 : 1,
-                        }}
-                      >
-                        <Card.Img
-                          src={producto.imagen}
-                          alt={producto.nombre}
-                          style={{
-                            height: `${altoImg}px`,
-                            objectFit: "contain",
-                            transition: "height 0.4s ease",
-                          }}
-                        />
-                        <Card.Body>
-                          <Card.Title
-                            className={`fs-6 text-primary ${
-                              esCentral ? "fw-bold" : ""
-                            }`}
-                          >
-                            {producto.nombre}
-                          </Card.Title>
+                    <Card className="border-0 shadow-sm mx-2 h-100 text-center kp-card">
+                      <Card.Img
+                        variant="top"
+                        src={p.imagen}
+                        alt={p.nombre}
+                        className="p-3 kp-card-img"
+                        style={{ height: "220px", objectFit: "contain" }}
+                      />
+                      <Card.Body>
+                        <Card.Title className="fw-bold fs-6 mb-2 text-primary">
+                          {p.nombre}
+                        </Card.Title>
 
-                          {precioOferta ? (
-                            <>
-                              <span
-                                className="badge bg-danger mb-1"
-                                style={{ fontSize: "0.75rem" }}
-                              >
-                                OFERTA
-                              </span>
-                              <Card.Text className="text-muted text-decoration-line-through">
-                                ${producto.precio.toLocaleString("es-CL")}
-                              </Card.Text>
-                              <Card.Text className="text-success fw-bold fs-5">
-                                ${precioOferta.toLocaleString("es-CL")}
-                              </Card.Text>
-                            </>
-                          ) : (
-                            <Card.Text className="fw-bold text-primary fs-5">
-                              ${producto.precio.toLocaleString("es-CL")}
-                            </Card.Text>
-                          )}
-                        </Card.Body>
-                      </Card>
-                    </a>
+                        {oferta > 0 && (
+                          <div className="mb-2">
+                            <span className="badge bg-danger">OFERTA</span>
+                            <div
+                              className="text-muted text-decoration-line-through"
+                              style={{ fontSize: "0.9rem" }}
+                            >
+                              ${p.precio.toLocaleString("es-CL")}
+                            </div>
+                          </div>
+                        )}
+
+                        <div
+                          className="fw-bold"
+                          style={{ color: "#007f4e", fontSize: "1.1rem" }}
+                        >
+                          ${precioFinal.toLocaleString("es-CL")}
+                        </div>
+                      </Card.Body>
+                    </Card>
                   </Link>
                 </div>
               );
             })}
-          </div>
-
-          <Button
-            variant="outline-primary"
-            className="position-absolute end-0 top-50 translate-middle-y"
-            onClick={nextSlide}
-          >
-            <i className="fas fa-chevron-right"></i>
-          </Button>
+          </Slider>
         </div>
+      </section>
+
+      <section className="product-categories">
+        <h3 className="text-center text-primary mb-4">
+          Explora Nuestras Categorías
+        </h3>
+        <Row xs={1} md={3} className="g-4">
+          <Col>
+            <Card className="h-100 shadow-sm category-card">
+              <Card.Img
+                variant="top"
+                src="img/jugete.png"
+                alt="Juguetes para mascotas"
+              />
+              <Card.Body className="d-flex flex-column align-items-center">
+                <Card.Title className="text-primary fw-bold">
+                  Juguetes para Mascotas
+                </Card.Title>
+                <Card.Text className="text-muted text-center flex-grow-1">
+                  Diversos juguetes para perros, gatos y más.
+                </Card.Text>
+                <Link href="/inventario?categoria=juguetes" legacyBehavior>
+                  <Button variant="primary" className="mt-auto">
+                    Explorar Juguetes
+                  </Button>
+                </Link>
+              </Card.Body>
+            </Card>
+          </Col>
+
+          <Col>
+            <Card className="h-100 shadow-sm category-card">
+              <Card.Img
+                variant="top"
+                src="img/accesorio.jpg"
+                alt="Accesorios"
+              />
+              <Card.Body className="d-flex flex-column align-items-center">
+                <Card.Title className="text-primary fw-bold">
+                  Accesorios
+                </Card.Title>
+                <Card.Text className="text-muted text-center flex-grow-1">
+                  Collares, correas y más para tus mascotas.
+                </Card.Text>
+                <Link href="/inventario?categoria=accesorios" legacyBehavior>
+                  <Button variant="primary" className="mt-auto">
+                    Ver Accesorios
+                  </Button>
+                </Link>
+              </Card.Body>
+            </Card>
+          </Col>
+
+          <Col>
+            <Card className="h-100 shadow-sm category-card">
+              <Card.Img
+                variant="top"
+                src="img/gatocomida.png"
+                alt="Alimentos"
+              />
+              <Card.Body className="d-flex flex-column align-items-center">
+                <Card.Title className="text-primary fw-bold">
+                  Alimentos
+                </Card.Title>
+                <Card.Text className="text-muted text-center flex-grow-1">
+                  Comida saludable para tus mascotas.
+                </Card.Text>
+                <Link href="/inventario?categoria=alimentos" legacyBehavior>
+                  <Button variant="primary" className="mt-auto">
+                    Descubre Alimentos
+                  </Button>
+                </Link>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
       </section>
     </main>
   );

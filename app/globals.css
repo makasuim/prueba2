@@ -765,3 +765,423 @@ article .btn {
   box-shadow: none !important;
   padding-right: 0.75rem !important; /* corrige el espacio reservado al ícono */
 }
+
+.kp-destacados {
+  background: #f5f7fb;
+  border-radius: 18px;
+  padding: 24px 0 32px;
+  box-shadow: 0 10px 30px rgba(121, 47, 255, 0.08) inset,
+    0 12px 24px rgba(0, 0, 0, 0.05);
+}
+
+.kp-slider-wrap {
+  position: relative;
+  padding: 0 48px;
+}
+
+.kp-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 999px;
+  background: #6b2dbd;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.kp-arrow:focus {
+  outline: none;
+}
+.kp-arrow:hover {
+  filter: brightness(1.05);
+}
+
+.kp-arrow-prev {
+  left: 8px;
+}
+.kp-arrow-next {
+  right: 8px;
+}
+
+.slick-list {
+  padding: 4px 2px;
+}
+
+.kp-slider-wrap .card {
+  margin: 0 2px;
+  border-radius: 14px;
+}
+
+@media (max-width: 1200px) {
+  .kp-slider-wrap {
+    padding: 0 44px;
+  }
+}
+
+.kp-destacados {
+  background: #f5f7fb;
+  border-radius: 18px;
+  padding: 24px 0 32px;
+  box-shadow: 0 10px 30px rgba(121, 47, 255, 0.08) inset,
+    0 12px 24px rgba(0, 0, 0, 0.05);
+}
+
+.kp-slider-wrap {
+  position: relative;
+  padding: 0 70px; /* más espacio lateral */
+}
+
+.kp-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 999px;
+  background: #6b2dbd;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.kp-arrow:focus {
+  outline: none;
+}
+.kp-arrow:hover {
+  filter: brightness(1.05);
+}
+
+.kp-arrow-prev {
+  left: 20px; /* más separadas */
+}
+.kp-arrow-next {
+  right: 20px;
+}
+
+.slick-list {
+  padding: 4px 2px;
+}
+
+.kp-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Imagen central ligeramente más grande */
+.slick-center .kp-card {
+  transform: scale(1.07);
+  box-shadow: 0 0 15px rgba(107, 45, 189, 0.2);
+  z-index: 2;
+}
+
+.kp-slider-wrap .card {
+  margin: 0 4px;
+  border-radius: 14px;
+}
+
+@media (max-width: 1200px) {
+  .kp-slider-wrap {
+    padding: 0 60px;
+  }
+}
+
+/* contenedor visual */
+.kp-destacados {
+  background: #f5f7fb;
+  border-radius: 18px;
+  padding: 24px 0 32px;
+  box-shadow: 0 10px 30px rgba(121, 47, 255, 0.08) inset,
+    0 12px 24px rgba(0, 0, 0, 0.05);
+}
+
+/* deja un gran “gutter” para que las flechas nunca se monten sobre las cards */
+.kp-slider-wrap {
+  position: relative;
+  padding: 0 120px; /* <- más espacio lateral */
+}
+
+/* por defecto, TODAS las tarjetas un poco más pequeñas... */
+.kp-card {
+  transform: scale(0.93);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* ...y la tarjeta central resalta más */
+.slick-center .kp-card {
+  transform: scale(1.07);
+  box-shadow: 0 0 18px rgba(107, 45, 189, 0.22);
+  z-index: 2;
+}
+
+/* flechas más separadas hacia los lados */
+.kp-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 999px;
+  background: #6b2dbd;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  z-index: 6; /* por encima del slider, pero fuera de las cards */
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.kp-arrow:focus {
+  outline: none;
+}
+.kp-arrow:hover {
+  filter: brightness(1.05);
+}
+
+/* colócalas dentro del gutter (no encima de las imágenes) */
+.kp-arrow-prev {
+  left: 34px;
+}
+.kp-arrow-next {
+  right: 34px;
+}
+
+/* pequeño acolchado interno para que el track no toque los bordes */
+.slick-list {
+  padding: 4px 2px;
+}
+
+/* ajuste móvil: mantiene 3 visibles y flechas aún con espacio */
+@media (max-width: 1200px) {
+  .kp-slider-wrap {
+    padding: 0 100px;
+  }
+  .kp-arrow-prev {
+    left: 26px;
+  }
+  .kp-arrow-next {
+    right: 26px;
+  }
+}
+
+/* Contenedor del bloque */
+.kp-destacados {
+  background: #f5f7fb;
+  border-radius: 18px;
+  padding: 24px 0 32px;
+  box-shadow: 0 10px 30px rgba(121, 47, 255, 0.08) inset,
+    0 12px 24px rgba(0, 0, 0, 0.05);
+}
+
+/* Gutter lateral para flechas (ajusta por tamaño) */
+.kp-slider-wrap {
+  position: relative;
+  padding: 0 120px;
+}
+@media (max-width: 1400px) {
+  .kp-slider-wrap {
+    padding: 0 100px;
+  }
+}
+@media (max-width: 1200px) {
+  .kp-slider-wrap {
+    padding: 0 80px;
+  }
+}
+@media (max-width: 992px) {
+  .kp-slider-wrap {
+    padding: 0 56px;
+  }
+}
+@media (max-width: 768px) {
+  .kp-slider-wrap {
+    padding: 0 40px;
+  }
+}
+@media (max-width: 576px) {
+  .kp-slider-wrap {
+    padding: 0 28px;
+  }
+}
+
+/* Slides full-bleed sin encoger demasiado */
+.slick-slide {
+  height: auto;
+  display: flex !important;
+}
+.slick-slide > div {
+  width: 100%;
+} /* asegura ancho del slide */
+.kp-card {
+  width: 260px; /* mínimo cómodo para que el texto no “salte” vertical */
+  max-width: 100%;
+  margin: 0 auto;
+  transform: scale(0.93);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.kp-card .kp-card-img {
+  height: 220px;
+  object-fit: contain;
+}
+
+/* Resalte central */
+.slick-center .kp-card {
+  transform: scale(1.07);
+  box-shadow: 0 0 18px rgba(107, 45, 189, 0.22);
+  z-index: 2;
+}
+
+/* Flechas: más hacia los lados */
+.kp-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 999px;
+  background: #6b2dbd;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.kp-arrow:focus {
+  outline: none;
+}
+.kp-arrow:hover {
+  filter: brightness(1.05);
+}
+
+.kp-arrow-prev {
+  left: 34px;
+}
+.kp-arrow-next {
+  right: 34px;
+}
+
+@media (max-width: 992px) {
+  .kp-arrow-prev {
+    left: 26px;
+  }
+  .kp-arrow-next {
+    right: 26px;
+  }
+}
+
+/* Ajuste del padding del track para que no corte bordes */
+.slick-list {
+  padding: 4px 2px;
+}
+
+/* ancho mínimo cómodo; evita que slick “aplane” el contenido */
+.kp-card {
+  width: 260px;
+  max-width: 100%;
+}
+
+/* si notas que con 5 queda muy justo en tu contenedor, baja un poco */
+@media (min-width: 1200px) and (max-width: 1350px) {
+  .kp-card {
+    width: 240px;
+  }
+}
+
+/* bloque visual */
+.kp-destacados {
+  background: #f5f7fb;
+  border-radius: 18px;
+  padding: 24px 0 32px;
+  box-shadow: 0 10px 30px rgba(121, 47, 255, 0.08) inset,
+    0 12px 24px rgba(0, 0, 0, 0.05);
+}
+
+/* el wrapper ya no agrega padding; dejamos salir flechas hacia afuera */
+.kp-slider-wrap {
+  position: relative;
+  overflow: visible;
+}
+
+/* tarjetas */
+.kp-card {
+  transform: scale(0.95);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.kp-card .kp-card-img {
+  height: 220px;
+  object-fit: contain;
+}
+
+/* resalte tarjeta central */
+.slick-center .kp-card {
+  transform: scale(1.07);
+  box-shadow: 0 0 18px rgba(107, 45, 189, 0.22);
+  z-index: 2;
+}
+
+/* flechas lejos de las imágenes */
+.kp-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: #6b2dbd;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.kp-arrow:focus {
+  outline: none;
+}
+.kp-arrow:hover {
+  filter: brightness(1.05);
+}
+
+/* bien a la izquierda/derecha (fuera del carrusel) */
+.kp-arrow-prev {
+  left: -56px;
+} /* mueve más si quieres: -64 / -72 */
+.kp-arrow-next {
+  right: -56px;
+}
+
+/* track con pequeño acolchado para que no “corte” bordes */
+.slick-list {
+  padding: 4px 2px;
+}
+
+/* en tablet acercamos un poco las flechas */
+@media (max-width: 992px) {
+  .kp-arrow-prev {
+    left: -36px;
+  }
+  .kp-arrow-next {
+    right: -36px;
+  }
+}
+/* en móvil, aún más cerca */
+@media (max-width: 576px) {
+  .kp-arrow-prev {
+    left: -24px;
+  }
+  .kp-arrow-next {
+    right: -24px;
+  }
+}

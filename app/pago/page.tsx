@@ -8,9 +8,7 @@ import {
   Card,
   Form,
   Button,
-  ListGroup,
   Alert,
-  InputGroup,
 } from "react-bootstrap";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import { todosLosProductos } from "../Data";
@@ -31,9 +29,7 @@ interface Mensaje {
 }
 
 const getProductDetails = (id: number) => {
-  if (!todosLosProductos || typeof todosLosProductos !== "object") {
-    return null;
-  }
+  if (!todosLosProductos || typeof todosLosProductos !== "object") return null;
   const allProducts = [
     ...(todosLosProductos.juguetes || []),
     ...(todosLosProductos.accesorios || []),
@@ -56,20 +52,19 @@ const Pago = () => {
   const [mensaje, setMensaje] = useState<Mensaje | null>(null);
   const [mostrarTarjeta, setMostrarTarjeta] = useState(true);
   const [stockActual, setStockActual] = useState<{ [key: number]: number }>({});
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const loadDataFromStorage = () => {
     if (typeof window === "undefined") return;
     const carritoStored: { id: number; cantidad: number }[] = JSON.parse(
       localStorage.getItem("carrito") || "[]"
     );
-    let stockStored = JSON.parse(sessionStorage.getItem("stockActual") || "{}");
+    const stockStored = JSON.parse(
+      sessionStorage.getItem("stockActual") || "{}"
+    );
     const carritoDetallado: ItemCarrito[] = carritoStored
       .map((item) => {
         const details = getProductDetails(item.id);
-        if (!details) {
-          return null;
-        }
+        if (!details) return null;
         return {
           id: item.id,
           cantidad: item.cantidad,
@@ -79,7 +74,7 @@ const Pago = () => {
           stock: stockStored[item.id] !== undefined ? stockStored[item.id] : 0,
         };
       })
-      .filter((item): item is ItemCarrito => item !== null);
+      .filter((x): x is ItemCarrito => x !== null);
     setCarrito(carritoDetallado);
     setStockActual(stockStored);
   };
@@ -88,14 +83,9 @@ const Pago = () => {
     if (typeof window === "undefined") return;
     const timer = setTimeout(loadDataFromStorage, 100);
     window.addEventListener("storage", loadDataFromStorage);
-    setIsLoggedIn(localStorage.getItem("isLoggedIn") === "1");
-    const onAuth = () =>
-      setIsLoggedIn(localStorage.getItem("isLoggedIn") === "1");
-    window.addEventListener("authChanged", onAuth);
     return () => {
       clearTimeout(timer);
       window.removeEventListener("storage", loadDataFromStorage);
-      window.removeEventListener("authChanged", onAuth);
     };
   }, []);
 
@@ -125,60 +115,48 @@ const Pago = () => {
     for (const item of carrito) {
       const lineSub = item.precio * item.cantidad;
       sub += lineSub;
-      if (isLoggedIn) {
-        const off = getOfertaFor(item.id) || 0;
-        const lineDesc = Math.round(lineSub * (off / 100));
-        desc += lineDesc;
-      }
+      const off = getOfertaFor(item.id) || 0;
+      const lineDesc = Math.round(lineSub * (off / 100));
+      desc += lineDesc;
     }
     return { subtotal: sub, descuento: desc, total: sub - desc };
-  }, [carrito, isLoggedIn]);
+  }, [carrito]);
 
   const handleCantidadChange = (id: number, nuevaCantidad: number) => {
-    setCarrito((prevCarrito) => {
-      const updatedCarrito = prevCarrito
+    setCarrito((prev) => {
+      const updated = prev
         .map((item) => {
-          if (item.id === id) {
-            const currentQuantity = item.cantidad;
-            const stock = stockActual[id] || 0;
-            const delta = nuevaCantidad - currentQuantity;
-            if (nuevaCantidad < 1) {
-              handleEliminarItem(id);
-              return null;
-            }
-            if (delta > 0 && stock < delta) {
-              setMensaje({
-                texto: `Stock insuficiente para añadir más. Quedan ${stock} unidades.`,
-                tipo: "danger",
-              });
-              return item;
-            }
-            setStockActual((prevStock) => ({
-              ...prevStock,
-              [id]: (prevStock[id] || 0) - delta,
-            }));
-            return { ...item, cantidad: nuevaCantidad };
+          if (item.id !== id) return item;
+          const current = item.cantidad;
+          const stock = stockActual[id] || 0;
+          const delta = nuevaCantidad - current;
+          if (nuevaCantidad < 1) {
+            handleEliminarItem(id);
+            return null;
           }
-          return item;
+          if (delta > 0 && stock < delta) {
+            setMensaje({
+              texto: `Stock insuficiente para añadir más. Quedan ${stock} unidades.`,
+              tipo: "danger",
+            });
+            return item;
+          }
+          setStockActual((s) => ({ ...s, [id]: (s[id] || 0) - delta }));
+          return { ...item, cantidad: nuevaCantidad };
         })
-        .filter(
-          (item) => item !== null && (item as ItemCarrito).cantidad > 0
-        ) as ItemCarrito[];
-      if (updatedCarrito.length === 0) setMensaje(null);
-      return updatedCarrito;
+        .filter((x) => x !== null) as ItemCarrito[];
+      if (updated.length === 0) setMensaje(null);
+      return updated;
     });
   };
 
   const handleEliminarItem = (id: number) => {
-    setCarrito((prevCarrito) => {
-      const itemToRemove = prevCarrito.find((item) => item.id === id);
-      if (itemToRemove) {
-        setStockActual((prevStock) => ({
-          ...prevStock,
-          [id]: (prevStock[id] || 0) + itemToRemove.cantidad,
-        }));
+    setCarrito((prev) => {
+      const it = prev.find((x) => x.id === id);
+      if (it) {
+        setStockActual((s) => ({ ...s, [id]: (s[id] || 0) + it.cantidad }));
       }
-      return prevCarrito.filter((item) => item.id !== id);
+      return prev.filter((x) => x.id !== id);
     });
   };
 
@@ -327,16 +305,9 @@ const Pago = () => {
                       <span>${subtotal.toLocaleString("es-CL")}</span>
                     </div>
                     <div className="d-flex justify-content-between">
-                      <span>
-                        Descuento{" "}
-                        {isLoggedIn ? "(ofertas aplicadas)" : "(inicia sesión)"}
-                      </span>
-                      <span
-                        className={isLoggedIn ? "text-success" : "text-muted"}
-                      >
-                        {isLoggedIn
-                          ? `- $${descuento.toLocaleString("es-CL")}`
-                          : "—"}
+                      <span>Descuento (ofertas aplicadas)</span>
+                      <span className="text-success">
+                        - ${descuento.toLocaleString("es-CL")}
                       </span>
                     </div>
                     <hr />
