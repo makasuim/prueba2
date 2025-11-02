@@ -1,17 +1,18 @@
 "use client";
 
-import React from "react";
-import { Container, Card, Button } from "react-bootstrap";
+import React, { Suspense, useMemo } from "react";
+import { Container, Card } from "react-bootstrap";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
-export default function Page() {
-  const search = useSearchParams();
-  const total = Number(search.get("total") || 0);
-  const items = Number(search.get("items") || 0);
+export const dynamic = "force-dynamic";
 
-  const totalCLP = total.toLocaleString("es-CL");
+function CompraExitosaInner() {
+  const search = useSearchParams();
+  const total = useMemo(() => Number(search.get("total") || 0), [search]);
+  const items = useMemo(() => Number(search.get("items") || 0), [search]);
+  const totalCLP = useMemo(() => total.toLocaleString("es-CL"), [total]);
 
   return (
     <main className="container my-5">
@@ -60,5 +61,13 @@ export default function Page() {
         </Card>
       </Container>
     </main>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <CompraExitosaInner />
+    </Suspense>
   );
 }

@@ -1,16 +1,21 @@
 "use client";
 
-import React from "react";
+import React, { Suspense, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, Button } from "react-bootstrap";
 import Link from "next/link";
 
-export default function PagoRechazado() {
+export const dynamic = "force-dynamic";
+
+function PagoRechazadoInner() {
   const params = useSearchParams();
   const router = useRouter();
-  const total = params.get("total") || "0";
-  const items = params.get("items") || "0";
-  const reason = params.get("reason") || "No especificado";
+  const total = useMemo(() => params.get("total") || "0", [params]);
+  const items = useMemo(() => params.get("items") || "0", [params]);
+  const reason = useMemo(
+    () => params.get("reason") || "No especificado",
+    [params]
+  );
 
   return (
     <main className="container my-5 flex-grow-1">
@@ -49,5 +54,13 @@ export default function PagoRechazado() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function PagoRechazado() {
+  return (
+    <Suspense fallback={null}>
+      <PagoRechazadoInner />
+    </Suspense>
   );
 }
