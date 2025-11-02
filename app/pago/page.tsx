@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Row, Col, Card, Form, Button, Alert } from "react-bootstrap";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-import { todosLosProductos } from "../Data";
-import { getOfertaFor } from "../Data";
+import { todosLosProductos, getOfertaFor } from "../Data";
+import { useRouter } from "next/navigation";
 
 interface ItemCarrito {
   id: number;
@@ -39,6 +39,7 @@ const getProductDetails = (id: number) => {
 };
 
 const Pago = () => {
+  const router = useRouter();
   const [carrito, setCarrito] = useState<ItemCarrito[]>([]);
   const [validated, setValidated] = useState(false);
   const [mensaje, setMensaje] = useState<Mensaje | null>(null);
@@ -101,17 +102,19 @@ const Pago = () => {
     sessionStorage.setItem("stockActual", JSON.stringify(stockActual));
   }, [carrito, stockActual]);
 
-  const { subtotal, descuento, total } = useMemo(() => {
+  const { subtotal, descuento, total, items } = useMemo(() => {
     let sub = 0;
     let desc = 0;
+    let it = 0;
     for (const item of carrito) {
       const lineSub = item.precio * item.cantidad;
       sub += lineSub;
+      it += item.cantidad;
       const off = getOfertaFor(item.id) || 0;
       const lineDesc = Math.round(lineSub * (off / 100));
       desc += lineDesc;
     }
-    return { subtotal: sub, descuento: desc, total: sub - desc };
+    return { subtotal: sub, descuento: desc, total: sub - desc, items: it };
   }, [carrito]);
 
   const handleCantidadChange = (id: number, nuevaCantidad: number) => {
@@ -155,7 +158,7 @@ const Pago = () => {
   const handleConfirmarPago = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setValidated(true);
-    const form = e.currentTarget;
+    const form = e.currentTarget as HTMLFormElement;
     if (!form.checkValidity()) {
       setMensaje({
         texto:
@@ -177,9 +180,15 @@ const Pago = () => {
       )}. Gracias por tu compra.`,
       tipo: "success",
     });
-    setCarrito([]);
-    localStorage.removeItem("carrito");
-    setValidated(false);
+    const totalCL = encodeURIComponent(total.toString());
+    const itemsCL = encodeURIComponent(items.toString());
+    setTimeout(() => {
+      localStorage.removeItem("carrito");
+      window.dispatchEvent(new Event("carritoActualizado"));
+      setCarrito([]);
+      setValidated(false);
+      router.push(`/pago/CompraExitosa?total=${totalCL}&items=${itemsCL}`);
+    }, 800);
   };
 
   const renderCartItem = (item: ItemCarrito) => {

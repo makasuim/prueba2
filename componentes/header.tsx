@@ -17,9 +17,7 @@ const MenuPortal: React.FC<{
 }> = ({ open, position, onClose, children }) => {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    if (open) {
-      requestAnimationFrame(() => setMounted(true));
-    }
+    if (open) requestAnimationFrame(() => setMounted(true));
     return () => setMounted(false);
   }, [open]);
   if (!open || !position) return null;
@@ -29,7 +27,7 @@ const MenuPortal: React.FC<{
         position: "fixed",
         top: position.top,
         left: position.left,
-        zIndex: 1000000,
+        zIndex: 2000,
         minWidth: position.width,
       }}
     >
@@ -62,12 +60,38 @@ const MenuPortal: React.FC<{
   );
 };
 
+const HoverItem: React.FC<{
+  href: string;
+  onClick?: () => void;
+  children: React.ReactNode;
+}> = ({ href, onClick, children }) => {
+  const [hover, setHover] = useState(false);
+  return (
+    <Link href={href} legacyBehavior>
+      <a
+        className="dropdown-item px-3 py-2 d-block"
+        onClick={onClick}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        style={{
+          transition:
+            "transform .18s ease, box-shadow .18s ease, background .18s ease, color .18s ease",
+          transform: hover ? "translateY(-2px)" : "translateY(0)",
+          boxShadow: hover ? "0 10px 20px rgba(106,13,173,.12)" : "none",
+          background: hover ? "var(--primary-color)" : "transparent",
+          color: hover ? "#fff" : "inherit",
+        }}
+      >
+        {children}
+      </a>
+    </Link>
+  );
+};
+
 const NavbarComponent: React.FC = () => {
   const [showOffcanvas, setShowOffcanvas] = useState(false);
   const [showAuthMenu, setShowAuthMenu] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
-  const [showAuthMobile, setShowAuthMobile] = useState(false);
-  const [showMoreMobile, setShowMoreMobile] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authPos, setAuthPos] = useState<Pos | null>(null);
@@ -75,6 +99,7 @@ const NavbarComponent: React.FC = () => {
   const authBtnRef = useRef<HTMLAnchorElement | null>(null);
   const moreBtnRef = useRef<HTMLAnchorElement | null>(null);
   const pathname = usePathname();
+  const [hoverKey, setHoverKey] = useState<string | null>(null);
 
   const handleClose = () => setShowOffcanvas(false);
   const handleShow = () => setShowOffcanvas(true);
@@ -129,9 +154,14 @@ const NavbarComponent: React.FC = () => {
 
   const baseLinks = useMemo(
     () => [
-      { path: "/", label: "Inicio", isCart: false, show: true },
-      { path: "/inventario", label: "Productos", isCart: false, show: true },
-      { path: "/pago", label: "Mi carrito", isCart: true, show: true },
+      { path: "/", label: "Inicio", isCart: false, key: "inicio" },
+      {
+        path: "/inventario",
+        label: "Productos",
+        isCart: false,
+        key: "productos",
+      },
+      { path: "/pago", label: "Mi carrito", isCart: true, key: "carrito" },
     ],
     []
   );
@@ -181,9 +211,9 @@ const NavbarComponent: React.FC = () => {
   useEffect(() => {
     const onResize = () => {
       if (showAuthMenu && authBtnRef.current)
-        setAuthPos(calcPosRightAligned(authBtnRef.current));
+        setAuthPos(calcPosRightAligned(authBtnRef.current, 180));
       if (showMoreMenu && moreBtnRef.current)
-        setMorePos(calcPosRightAligned(moreBtnRef.current));
+        setMorePos(calcPosRightAligned(moreBtnRef.current, 220));
     };
     window.addEventListener("resize", onResize);
     window.addEventListener("scroll", onResize, { passive: true });
@@ -209,21 +239,14 @@ const NavbarComponent: React.FC = () => {
       setMorePos(calcPosRightAligned(moreBtnRef.current, 220));
   };
 
-  const dropItemStyle = {
-    padding: "10px 14px",
-    display: "block",
-    textDecoration: "none",
-    color: "var(--text-color, #333)",
-    transition: "background .18s ease, color .18s ease, transform .18s ease",
-  } as React.CSSProperties;
-
-  const dropItemHoverStyle = {
-    background: "var(--primary-color)",
-    color: "#fff",
-    transform: "translateY(-1px)",
-  } as React.CSSProperties;
-
-  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
+  const navAnim = (key: string, active: boolean) =>
+    hoverKey === key
+      ? {
+          transform: "translateY(-2px)",
+          boxShadow: "0 10px 20px rgba(106,13,173,.25)",
+          background: active ? "var(--secondary-color)" : undefined,
+        }
+      : {};
 
   return (
     <>
@@ -246,9 +269,9 @@ const NavbarComponent: React.FC = () => {
 
           <nav role="navigation" className="main-nav ms-auto d-none d-lg-block">
             <ul className="list-unstyled d-flex m-0 align-items-center">
-              {baseLinks.map((link, index) => (
+              {baseLinks.map((link) => (
                 <li
-                  key={index}
+                  key={link.key}
                   className={`nav-item ${
                     link.isCart ? "position-relative" : ""
                   }`}
@@ -264,9 +287,12 @@ const NavbarComponent: React.FC = () => {
                       className={`nav-link px-3 ${
                         isActive(link.path) ? "active" : ""
                       }`}
+                      onMouseEnter={() => setHoverKey(link.key)}
+                      onMouseLeave={() => setHoverKey(null)}
                       style={{
                         transition:
                           "transform .18s ease, box-shadow .18s ease, background .18s ease",
+                        ...navAnim(link.key, isActive(link.path)),
                       }}
                     >
                       {renderDesktopLinkContent(link)}
@@ -277,9 +303,12 @@ const NavbarComponent: React.FC = () => {
                         className={`nav-link px-3 ${
                           isActive(link.path) ? "active" : ""
                         }`}
+                        onMouseEnter={() => setHoverKey(link.key)}
+                        onMouseLeave={() => setHoverKey(null)}
                         style={{
                           transition:
                             "transform .18s ease, box-shadow .18s ease, background .18s ease",
+                          ...navAnim(link.key, isActive(link.path)),
                         }}
                       >
                         {renderDesktopLinkContent(link)}
@@ -300,12 +329,15 @@ const NavbarComponent: React.FC = () => {
                     onKeyDown={(e) =>
                       (e.key === "Enter" || e.key === " ") && toggleAuthMenu()
                     }
+                    onMouseEnter={() => setHoverKey("auth")}
+                    onMouseLeave={() => setHoverKey(null)}
                     style={{
                       transition:
                         "transform .18s ease, box-shadow .18s ease, background .18s ease",
                       display: "inline-flex",
                       alignItems: "center",
                       gap: 8,
+                      ...navAnim("auth", false),
                     }}
                   >
                     Iniciar sesión
@@ -332,12 +364,15 @@ const NavbarComponent: React.FC = () => {
                   onKeyDown={(e) =>
                     (e.key === "Enter" || e.key === " ") && toggleMoreMenu()
                   }
+                  onMouseEnter={() => setHoverKey("more")}
+                  onMouseLeave={() => setHoverKey(null)}
                   style={{
                     transition:
                       "transform .18s ease, box-shadow .18s ease, background .18s ease",
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 8,
+                    ...navAnim("more", false),
                   }}
                 >
                   Más
@@ -361,9 +396,12 @@ const NavbarComponent: React.FC = () => {
                     onKeyDown={(e) =>
                       (e.key === "Enter" || e.key === " ") && cerrarSesion()
                     }
+                    onMouseEnter={() => setHoverKey("salir")}
+                    onMouseLeave={() => setHoverKey(null)}
                     style={{
                       transition:
                         "transform .18s ease, box-shadow .18s ease, background .18s ease",
+                      ...navAnim("salir", false),
                     }}
                   >
                     Salir
@@ -390,32 +428,8 @@ const NavbarComponent: React.FC = () => {
         position={authPos}
         onClose={() => setShowAuthMenu(false)}
       >
-        <Link href="/acceso" legacyBehavior>
-          <a
-            className="dropdown-item"
-            style={{
-              ...dropItemStyle,
-              ...(hoveredKey === "acc" ? dropItemHoverStyle : {}),
-            }}
-            onMouseEnter={() => setHoveredKey("acc")}
-            onMouseLeave={() => setHoveredKey(null)}
-          >
-            Acceder
-          </a>
-        </Link>
-        <Link href="/registro" legacyBehavior>
-          <a
-            className="dropdown-item"
-            style={{
-              ...dropItemStyle,
-              ...(hoveredKey === "reg" ? dropItemHoverStyle : {}),
-            }}
-            onMouseEnter={() => setHoveredKey("reg")}
-            onMouseLeave={() => setHoveredKey(null)}
-          >
-            Registrarse
-          </a>
-        </Link>
+        <HoverItem href="/acceso">Acceder</HoverItem>
+        <HoverItem href="/registro">Registrarse</HoverItem>
       </MenuPortal>
 
       <MenuPortal
@@ -424,19 +438,9 @@ const NavbarComponent: React.FC = () => {
         onClose={() => setShowMoreMenu(false)}
       >
         {moreLinks.map((l) => (
-          <Link key={l.path} href={l.path} legacyBehavior>
-            <a
-              className="dropdown-item"
-              style={{
-                ...dropItemStyle,
-                ...(hoveredKey === l.path ? dropItemHoverStyle : {}),
-              }}
-              onMouseEnter={() => setHoveredKey(l.path)}
-              onMouseLeave={() => setHoveredKey(null)}
-            >
-              {l.label}
-            </a>
-          </Link>
+          <HoverItem key={l.path} href={l.path}>
+            {l.label}
+          </HoverItem>
         ))}
       </MenuPortal>
 
@@ -444,14 +448,13 @@ const NavbarComponent: React.FC = () => {
         show={showOffcanvas}
         onHide={() => {
           handleClose();
-          setShowAuthMobile(false);
-          setShowMoreMobile(false);
         }}
         placement="end"
         id="offcanvasMenu"
         aria-labelledby="offcanvasMenuLabel"
         className="offcanvas-end"
         tabIndex={-1}
+        style={{ zIndex: 2001 }}
       >
         <Offcanvas.Header closeButton>
           <Offcanvas.Title id="offcanvasMenuLabel">Menú</Offcanvas.Title>
@@ -459,146 +462,116 @@ const NavbarComponent: React.FC = () => {
 
         <Offcanvas.Body className="p-0 d-flex flex-column h-100">
           <ul className="list-unstyled m-0 flex-grow-1">
-            {baseLinks.map((link, index) => (
-              <li key={index}>
-                {link.isCart ? (
-                  <a
-                    role="button"
-                    tabIndex={0}
-                    onClick={irAPagar}
-                    onKeyDown={(e) =>
-                      (e.key === "Enter" || e.key === " ") && irAPagar()
-                    }
-                    className="offcanvas-nav-link d-block px-3 py-2 text-primary"
-                    style={{
-                      transition: "background .18s ease, transform .18s ease",
-                    }}
-                  >
-                    {link.label}
-                    {renderBadge(cartCount, "cart-count-mobile")}
-                  </a>
-                ) : (
-                  <Link
-                    href={link.path}
-                    className={`text-decoration-none offcanvas-nav-link d-block px-3 py-2 ${
-                      isActive(link.path) ? "active" : ""
-                    }`}
-                    onClick={handleClose}
-                    legacyBehavior
-                  >
-                    {link.label}
-                  </Link>
-                )}
-              </li>
-            ))}
-
-            {!isLoggedIn && (
-              <>
-                <li>
-                  <a
-                    role="button"
-                    tabIndex={0}
-                    className="offcanvas-nav-link d-block px-3 py-2"
-                    onClick={() => setShowAuthMobile((s) => !s)}
-                    onKeyDown={(e) =>
-                      (e.key === "Enter" || e.key === " ") &&
-                      setShowAuthMobile((s) => !s)
-                    }
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    Iniciar sesión
-                    <i
-                      className="fas fa-chevron-down small"
-                      style={{
-                        transition: "transform .18s ease",
-                        transform: showAuthMobile
-                          ? "rotate(180deg)"
-                          : "rotate(0)",
-                      }}
-                    />
-                  </a>
-                </li>
-                <li>
-                  <div
-                    style={{
-                      overflow: "hidden",
-                      maxHeight: showAuthMobile ? 200 : 0,
-                      transition: "max-height .22s ease",
-                    }}
-                  >
-                    <Link
-                      href="/acceso"
-                      className="text-decoration-none d-block px-4 py-2"
-                      onClick={handleClose}
-                      legacyBehavior
-                    >
-                      Acceder
-                    </Link>
-                    <Link
-                      href="/registro"
-                      className="text-decoration-none d-block px-4 py-2"
-                      onClick={handleClose}
-                      legacyBehavior
-                    >
-                      Registrarse
-                    </Link>
-                  </div>
-                </li>
-              </>
-            )}
-
+            <li>
+              <Link
+                href="/"
+                className={`text-decoration-none offcanvas-nav-link d-block px-3 py-2 ${
+                  isActive("/") ? "active" : ""
+                }`}
+                onClick={handleClose}
+                legacyBehavior
+              >
+                Inicio
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/inventario"
+                className={`text-decoration-none offcanvas-nav-link d-block px-3 py-2 ${
+                  isActive("/inventario") ? "active" : ""
+                }`}
+                onClick={handleClose}
+                legacyBehavior
+              >
+                Productos
+              </Link>
+            </li>
             <li>
               <a
                 role="button"
                 tabIndex={0}
-                className="offcanvas-nav-link d-block px-3 py-2"
-                onClick={() => setShowMoreMobile((s) => !s)}
+                onClick={irAPagar}
                 onKeyDown={(e) =>
-                  (e.key === "Enter" || e.key === " ") &&
-                  setShowMoreMobile((s) => !s)
+                  (e.key === "Enter" || e.key === " ") && irAPagar()
                 }
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
+                className="offcanvas-nav-link d-block px-3 py-2 text-primary"
               >
-                Más
-                <i
-                  className="fas fa-chevron-down small"
-                  style={{
-                    transition: "transform .18s ease",
-                    transform: showMoreMobile ? "rotate(180deg)" : "rotate(0)",
-                  }}
-                />
+                Mi carrito
+                {renderBadge(cartCount, "cart-count-mobile")}
               </a>
             </li>
             <li>
-              <div
-                style={{
-                  overflow: "hidden",
-                  maxHeight: showMoreMobile ? 240 : 0,
-                  transition: "max-height .22s ease",
-                }}
+              <Link
+                href="/acceso"
+                className={`text-decoration-none offcanvas-nav-link d-block px-3 py-2 ${
+                  isActive("/acceso") ? "active" : ""
+                }`}
+                onClick={handleClose}
+                legacyBehavior
               >
-                {moreLinks.map((l) => (
-                  <Link
-                    key={l.path}
-                    href={l.path}
-                    className="text-decoration-none d-block px-4 py-2"
-                    onClick={handleClose}
-                    legacyBehavior
-                  >
-                    {l.label}
-                  </Link>
-                ))}
-              </div>
+                Iniciar sesión
+              </Link>
             </li>
-
+            <li>
+              <Link
+                href="/registro"
+                className={`text-decoration-none offcanvas-nav-link d-block px-3 py-2 ${
+                  isActive("/registro") ? "active" : ""
+                }`}
+                onClick={handleClose}
+                legacyBehavior
+              >
+                Registro
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/contacto"
+                className={`text-decoration-none offcanvas-nav-link d-block px-3 py-2 ${
+                  isActive("/contacto") ? "active" : ""
+                }`}
+                onClick={handleClose}
+                legacyBehavior
+              >
+                Contacto
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/blog"
+                className={`text-decoration-none offcanvas-nav-link d-block px-3 py-2 ${
+                  isActive("/blog") ? "active" : ""
+                }`}
+                onClick={handleClose}
+                legacyBehavior
+              >
+                Blog
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/nosotros"
+                className={`text-decoration-none offcanvas-nav-link d-block px-3 py-2 ${
+                  isActive("/nosotros") ? "active" : ""
+                }`}
+                onClick={handleClose}
+                legacyBehavior
+              >
+                Nosotros
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/ofertas"
+                className={`text-decoration-none offcanvas-nav-link d-block px-3 py-2 ${
+                  isActive("/ofertas") ? "active" : ""
+                }`}
+                onClick={handleClose}
+                legacyBehavior
+              >
+                Ofertas
+              </Link>
+            </li>
             {isLoggedIn && (
               <li>
                 <a
@@ -626,9 +599,6 @@ const NavbarComponent: React.FC = () => {
               className="w-100 py-2 fs-5"
               onClick={irAPagar}
               disabled={cartCount === 0}
-              style={{
-                transition: "transform .18s ease, box-shadow .18s ease",
-              }}
             >
               <i className="fas fa-money-check-alt me-2"></i>
               IR A PAGAR

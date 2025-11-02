@@ -144,7 +144,9 @@ const InventarioClient: React.FC = () => {
         </h2>
 
         <div className="d-flex align-items-center gap-2">
-          <span className="fw-semibold text-muted small">Filtrar por:</span>
+          <span className="fw-semibold text-muted small">
+            Filtrar por Categoria:
+          </span>
           <Dropdown align="end" onSelect={cambiarCategoria}>
             <Dropdown.Toggle
               variant="light"

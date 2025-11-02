@@ -107,7 +107,7 @@ const DetalleClient: React.FC = () => {
   }
 
   const esBajoStock = stockLocal > 0 && stockLocal < 3;
-  const off = isLoggedIn ? getOfertaFor(producto.id) : 0;
+  const off = getOfertaFor(producto.id);
   const precioConOff = off
     ? Math.round(producto.precio - producto.precio * (off / 100))
     : producto.precio;
