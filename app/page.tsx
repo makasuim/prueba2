@@ -60,19 +60,22 @@ const Home: React.FC = () => {
     dots: false,
     infinite: true,
     speed: 500,
-    centerMode: true, // central siempre visible
+    centerMode: true,
     centerPadding: "0px",
-    slidesToShow: 3, // ⇦ ahora 3 en desktop
+    slidesToShow: 5,
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 3000,
     arrows: true,
     prevArrow: <PrevArrow />,
     nextArrow: <NextArrow />,
+    adaptiveHeight: true,
+    swipeToSlide: true,
+    lazyLoad: "ondemand" as const,
     responsive: [
-      // tablets → 2 (sin center para que no se rompa)
+      { breakpoint: 1600, settings: { slidesToShow: 4, centerMode: true } },
+      { breakpoint: 1200, settings: { slidesToShow: 3, centerMode: true } },
       { breakpoint: 992, settings: { slidesToShow: 2, centerMode: false } },
-      // móviles → 1
       { breakpoint: 576, settings: { slidesToShow: 1, centerMode: false } },
     ],
   };
@@ -129,7 +132,6 @@ const Home: React.FC = () => {
                         src={p.imagen}
                         alt={p.nombre}
                         className="p-3 kp-card-img"
-                        style={{ height: "220px", objectFit: "contain" }}
                       />
                       <Card.Body>
                         <Card.Title className="fw-bold fs-6 mb-2 text-primary">

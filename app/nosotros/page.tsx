@@ -1,6 +1,7 @@
 "use client";
+
 import React from "react";
-import { Container, Row, Col, Card } from "react-bootstrap";
+import { Row, Col, Card } from "react-bootstrap";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
 const Nosotros: React.FC = () => {
@@ -27,7 +28,7 @@ const Nosotros: React.FC = () => {
       <Row className="justify-content-center">
         <Col lg={10}>
           <Card className="shadow-lg p-4 p-md-5">
-            <h2 className="card-title text-center text-primary mb-4 display-5 fw-bold">
+            <h2 className="card-title text-center text-primary mb-4 display-6 fw-bold">
               Sobre Nosotros
             </h2>
 
@@ -45,8 +46,8 @@ const Nosotros: React.FC = () => {
                 <p className="text-muted">
                   Nuestra misión es ser el aliado número uno de los dueños de
                   mascotas, proporcionando una experiencia de compra
-                  excepcional, productos cuidadosamente seleccionados y un
-                  servicio al cliente que refleje nuestro amor por los animales.
+                  excepcional, productos seleccionados y un servicio al cliente
+                  que refleje nuestro amor por los animales.
                 </p>
               </div>
             </section>
@@ -68,6 +69,10 @@ const Nosotros: React.FC = () => {
                           height: "150px",
                           objectFit: "cover",
                         }}
+                        onError={(e) =>
+                          ((e.target as HTMLImageElement).src =
+                            "/img/placeholder.png")
+                        }
                       />
                       <Card.Body>
                         <h5 className="card-title text-primary fw-bold mt-2">

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, ChangeEvent } from "react";
 import {
-  Container,
   Row,
   Col,
   Card,
@@ -97,8 +96,6 @@ const Registro = () => {
 
   const validarFormulario = (): boolean => {
     let valido = true;
-
-    // --- Validación de campos obligatorios de Usuario ---
     if (
       !regexNombre.test(formData.nombreCompleto) ||
       formData.nombreCompleto.length > 50
@@ -118,12 +115,9 @@ const Registro = () => {
       valido = false;
     if (formData.region === "") valido = false;
     if (formData.comuna === "") valido = false;
-
-    // --- Lógica de Mascota Opcional ---
     const mascotasActivas = mascotas.filter(
       (m) => m.tipo !== "" || m.nombre.trim() !== ""
     );
-
     if (mascotasActivas.length > 0) {
       mascotasActivas.forEach((m) => {
         if (m.tipo === "" || m.nombre.trim() === "" || m.nombre.length > 50) {
@@ -131,7 +125,6 @@ const Registro = () => {
         }
       });
     }
-
     return valido;
   };
 
@@ -139,33 +132,26 @@ const Registro = () => {
     e.preventDefault();
     setValidated(true);
     setMensaje(null);
-
     const esValido = validarFormulario();
-
     if (esValido) {
-      // Filtramos las mascotas vacías antes de guardar
       const mascotasParaGuardar = mascotas.filter(
         (m) => m.tipo !== "" && m.nombre.trim() !== ""
       );
-
-      // 🎯 CORRECCIÓN CLAVE: Se añade la lista de mascotas al objeto guardado.
       const usuarioRegistrado = {
         nombreCompleto: formData.nombreCompleto.trim(),
         correo: formData.correoElectronico.trim(),
         contrasena: formData.contrasenaRegistro,
-        mascotas: mascotasParaGuardar, // <--- AÑADIDO
+        mascotas: mascotasParaGuardar,
       };
       localStorage.setItem(
         "usuarioRegistrado",
         JSON.stringify(usuarioRegistrado)
       );
-
       setMensaje({
         texto:
           "¡Registro exitoso en KittyPatitasSuaves! Ahora puedes iniciar sesión.",
         tipo: "success",
       });
-
       setFormData(initialFormData);
       setMascotas([{ tipo: "", nombre: "" }]);
       setValidated(false);
@@ -179,7 +165,7 @@ const Registro = () => {
 
   useEffect(() => {
     if (mascotas.length === 0) {
-      agregarMascota();
+      setMascotas([{ tipo: "", nombre: "" }]);
     }
   }, [mascotas.length]);
 
@@ -214,8 +200,8 @@ const Registro = () => {
                   placeholder="Tu Nombre Completo"
                 />
                 <Form.Control.Feedback type="invalid">
-                  El nombre no debe estar vacío, debe contener solo caracteres
-                  alfabéticos y espacios, y tener un máximo de 50 caracteres.
+                  El nombre no debe estar vacío, debe contener solo letras y
+                  espacios, y tener un máximo de 50 caracteres.
                 </Form.Control.Feedback>
               </Form.Group>
 
@@ -251,9 +237,8 @@ const Registro = () => {
                   placeholder="********"
                 />
                 <Form.Control.Feedback type="invalid">
-                  La contraseña debe tener al menos 8 caracteres, incluir una
-                  mayúscula, una minúscula, un número y un carácter especial
-                  (@#$%!).
+                  La contraseña debe tener al menos 8 caracteres, incluir
+                  mayúscula, minúscula, número y carácter especial.
                 </Form.Control.Feedback>
               </Form.Group>
 
@@ -275,10 +260,7 @@ const Registro = () => {
                   }
                   placeholder="********"
                 />
-                <Form.Control.Feedback
-                  type="invalid"
-                  id="retroalimentacionConfirmarContrasenaRegistro"
-                >
+                <Form.Control.Feedback type="invalid">
                   Las contraseñas no coinciden.
                 </Form.Control.Feedback>
               </Form.Group>
@@ -426,6 +408,7 @@ const Registro = () => {
                   ))}
                 </ListGroup>
               </div>
+
               <Button
                 type="button"
                 variant="outline-primary"
@@ -437,7 +420,11 @@ const Registro = () => {
               </Button>
 
               <div className="d-flex justify-content-center mt-3">
-                <Button type="submit" variant="success" className="px-5">
+                <Button
+                  type="submit"
+                  variant="success"
+                  className="px-5 w-100 w-sm-auto"
+                >
                   Registrarse
                 </Button>
               </div>

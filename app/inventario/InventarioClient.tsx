@@ -209,7 +209,6 @@ const InventarioClient: React.FC = () => {
                     src={producto.imagen}
                     alt={producto.nombre}
                     className="card-img-top"
-                    style={{ height: "200px", objectFit: "contain" }}
                   />
                   <Card.Body className="d-flex flex-column pb-0">
                     <Card.Title className="fs-6 fw-semibold text-primary">

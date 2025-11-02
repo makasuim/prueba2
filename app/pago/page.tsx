@@ -1,15 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import {
-  Container,
-  Row,
-  Col,
-  Card,
-  Form,
-  Button,
-  Alert,
-} from "react-bootstrap";
+import { Row, Col, Card, Form, Button, Alert } from "react-bootstrap";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import { todosLosProductos } from "../Data";
 import { getOfertaFor } from "../Data";
@@ -192,17 +184,10 @@ const Pago = () => {
 
   const renderCartItem = (item: ItemCarrito) => {
     const off = getOfertaFor(item.id) || 0;
-
-    // Subtotal de la línea sin descuento
     const lineSub = item.precio * item.cantidad;
-    // Descuento de la línea (mismo criterio que usas en el useMemo: redondeo por línea)
     const lineDesc = Math.round(lineSub * (off / 100));
-    // Total de la línea con oferta
     const lineTotal = lineSub - lineDesc;
-
-    // Para mostrar precios unitarios coherentes con el total (evita desajustes por redondeo)
     const unitWithOffer = Math.round(lineTotal / item.cantidad);
-
     const isOutOfStock = stockActual[item.id] <= 0;
 
     return (
@@ -230,7 +215,6 @@ const Pago = () => {
             <span className="fw-semibold text-primary d-block">
               {item.nombre}
             </span>
-
             {off > 0 ? (
               <>
                 <small className="text-muted me-2">
@@ -278,7 +262,6 @@ const Pago = () => {
             <i className="fas fa-plus"></i>
           </Button>
 
-          {/* Total de la línea usando precio con oferta */}
           <span className="fw-bold text-dark ms-3 me-2">
             ${lineTotal.toLocaleString("es-CL")}
           </span>

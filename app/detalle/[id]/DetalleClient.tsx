@@ -15,7 +15,6 @@ const getProductById = (id: number): Producto | undefined => {
   return all.find((p) => p.id === id);
 };
 
-// 🔧 normaliza a "/img/archivo.ext"
 const norm = (p: string) => (p?.startsWith("/") ? p : `/${p}`);
 
 const DetalleClient: React.FC = () => {
@@ -129,18 +128,12 @@ const DetalleClient: React.FC = () => {
                 <img
                   src={imagenPrincipal}
                   alt={producto.nombre}
-                  className="img-fluid rounded-lg shadow-sm mb-3"
-                  style={{
-                    maxHeight: "450px",
-                    objectFit: "cover",
-                    width: "100%",
-                    borderRadius: "10px",
-                  }}
+                  className="kp-producto-principal"
                   onError={(e) =>
                     (e.currentTarget.src = "/img/placeholder.png")
                   }
                 />
-                <div className="d-flex justify-content-center gap-3">
+                <div className="d-flex justify-content-center gap-3 mt-3">
                   {producto.imagendescripcion.map((img, idx) => {
                     const src = norm(img);
                     return (
@@ -149,15 +142,12 @@ const DetalleClient: React.FC = () => {
                         src={src}
                         alt={`vista-${idx}`}
                         onClick={() => setImagenPrincipal(src)}
-                        className={`rounded border ${
+                        className={`kp-thumb rounded border ${
                           imagenPrincipal === src
                             ? "border-primary"
                             : "border-light"
                         }`}
                         style={{
-                          width: "90px",
-                          height: "90px",
-                          objectFit: "cover",
                           cursor: "pointer",
                           transition: "transform 0.2s",
                         }}

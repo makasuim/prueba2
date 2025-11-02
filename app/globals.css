@@ -27,7 +27,6 @@ body {
   animation: fadeIn 1.5s var(--transition-timing);
 }
 
-/* Estilos del encabezado */
 .main-header {
   background: linear-gradient(90deg, var(--primary-color) 0%, #9b4dca 100%);
   color: #fff;
@@ -48,10 +47,9 @@ body {
   justify-content: space-between;
   align-items: center;
   flex-wrap: nowrap;
-  overflow-x: hidden; /* CORRECCIÓN: Oculta la barra de desplazamiento horizontal */
+  overflow-x: hidden;
 }
 
-/* 🎯 Animación y cursor para que el logo parezca botón */
 .site-title {
   font-size: clamp(1.75rem, 4vw, 2.75rem);
   flex-shrink: 0;
@@ -69,11 +67,10 @@ body {
 }
 
 .site-title:hover {
-  transform: scale(1.05); /* Ligeramente más grande */
-  text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 5px var(--secondary-color); /* Resplandor */
+  transform: scale(1.05);
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 5px var(--secondary-color);
 }
 
-/* 🎯 NUEVA REGLA: Animación para la imagen principal del Hero */
 .hero-image-link {
   cursor: pointer;
   transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
@@ -81,10 +78,10 @@ body {
 }
 
 .hero-image-link:hover {
-  transform: scale(1.02); /* Ligeramente más grande */
-  box-shadow: 0 15px 35px rgba(106, 13, 173, 0.5) !important; /* Sombra más pronunciada */
+  transform: scale(1.02);
+  box-shadow: 0 15px 35px rgba(106, 13, 173, 0.5) !important;
 }
-/* Aseguramos que la imagen no tenga una transformación propia que choque */
+
 .hero-section .img-fluid {
   box-shadow: 0 8px 25px var(--shadow-color);
   animation: scaleIn 1s var(--transition-timing) 1.5s both;
@@ -100,11 +97,10 @@ body {
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
   }
   to {
-    text-shadow: 2px 2px 4px rgba(255, 193, 7, 0.7);
+    text-shadow: 0 0 10px rgba(255, 193, 7, 0.7);
   }
 }
 
-/* Barra de navegación */
 .main-nav ul {
   list-style: none;
   display: flex;
@@ -142,9 +138,7 @@ body {
   box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
 }
 
-/* Estilos para el contador del carrito */
 .main-nav .nav-item .badge {
-  /* Posicionamiento absoluto para que no afecte el flujo del nav-link */
   position: absolute;
   top: -5px;
   right: -10px;
@@ -160,14 +154,11 @@ body {
   z-index: 1;
 }
 
-/* Asegurar que el nav-link que contiene el badge tenga position: relative */
 .main-nav .nav-item {
   position: relative;
 }
 
-/* Offcanvas Menu (Hamburguesa) */
 .offcanvas-nav-link {
-  /* Mantener !important para asegurar el color púrpura */
   color: var(--primary-color) !important;
   font-weight: 600;
   padding: 0.75rem 1rem;
@@ -181,7 +172,6 @@ body {
   border-radius: 0.5rem;
 }
 
-/* Main contenido */
 main {
   flex: 1;
   padding: 3rem 1rem;
@@ -205,13 +195,11 @@ main {
 }
 
 .hero-section .img-fluid {
-  /* Se usan las reglas del link .hero-image-link:hover para la animación */
   max-width: 100%;
   height: auto;
   border-radius: var(--border-radius);
 }
 
-/* Grid de productos/categorías */
 .product-categories .card-img-top,
 .card .card-img-top {
   height: 220px;
@@ -274,7 +262,6 @@ main {
   animation: fadeIn 0.8s var(--transition-timing) 1s both;
 }
 
-/* Estilos Blog */
 article {
   margin-bottom: 2rem;
   background: #fff;
@@ -316,7 +303,6 @@ article .btn {
   padding: 0.6rem 1.25rem;
 }
 
-/* Botones */
 .btn {
   border: none;
   border-radius: var(--border-radius);
@@ -387,7 +373,6 @@ article .btn {
   color: white;
 }
 
-/* Texto con color primario */
 .text-primary {
   color: var(--primary-color) !important;
 }
@@ -397,7 +382,6 @@ article .btn {
   text-decoration: underline !important;
 }
 
-/* Formularios */
 .form-control:focus {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 0.25rem rgba(106, 13, 173, 0.25);
@@ -408,7 +392,6 @@ article .btn {
   border-color: var(--primary-color);
 }
 
-/* Footer */
 .site-footer {
   background: var(--primary-color);
   color: var(--secondary-color);
@@ -430,7 +413,6 @@ article .btn {
   color: #fff;
 }
 
-/* Animaciones */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -468,7 +450,6 @@ article .btn {
   }
 }
 
-/* Media queries para responsividad */
 @media (max-width: 991.98px) {
   .main-nav {
     display: none !important;
@@ -476,7 +457,6 @@ article .btn {
   .menu-hamburguesa {
     display: flex !important;
   }
-  /* En pantallas más pequeñas, permitir que el header se envuelva si es necesario */
   .main-header .container {
     flex-wrap: wrap;
     justify-content: center;
@@ -534,7 +514,6 @@ article .btn {
   }
 }
 
-/* Animación de carga */
 .loading {
   position: fixed;
   top: 0;
@@ -585,7 +564,6 @@ article .btn {
   }
 }
 
-/* Estilos específicos para el resumen de compra y pago */
 #resumenCompra ul {
   list-style: none;
   padding: 0;
@@ -648,7 +626,6 @@ article .btn {
   padding: 0 !important;
 }
 
-/* Card Header para formularios */
 .card-header.bg-primary {
   background: linear-gradient(
     90deg,
@@ -662,7 +639,6 @@ article .btn {
   border-top-right-radius: var(--border-radius) !important;
 }
 
-/* Botón menú hamburguesa */
 .menu-hamburguesa {
   position: fixed;
   top: 1rem;
@@ -694,7 +670,6 @@ article .btn {
   background-color: #fff;
 }
 
-/* Offcanvas personalización */
 .offcanvas {
   background: linear-gradient(135deg, #fff 0%, #f3e8ff 100%);
   border-left: 4px solid var(--secondary-color);
@@ -707,14 +682,12 @@ article .btn {
   color: var(--primary-color);
 }
 
-/* Aumentar ancho del offcanvas para que no corte textos */
 .offcanvas-end {
   width: 280px !important;
 }
 
-/* CORRECCIÓN DE ESPECIFICIDAD: Se modifican las reglas genéricas para asegurar el color PÚRPURA */
 .offcanvas-body ul li a {
-  color: var(--primary-color) !important; /* FORZAR COLOR PRIMARIO */
+  color: var(--primary-color) !important;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -725,17 +698,14 @@ article .btn {
   transition: all 0.3s ease-in-out;
 }
 
-/* Hover y focus para mejor experiencia */
-/* SOBRESCRIBIR EL AZUL de Bootstrap por el PÚRPURA deseado */
 .offcanvas-body ul li a:hover,
 .offcanvas-body ul li a:focus {
-  background-color: var(--primary-color); /* Usar Primary Color */
+  background-color: var(--primary-color);
   color: white !important;
   text-decoration: none;
   border-radius: 0.25rem;
 }
 
-/* Ajuste para pantallas pequeñas */
 @media (max-width: 576px) {
   .offcanvas-body ul li a {
     font-size: 1.1rem;
@@ -755,15 +725,14 @@ article .btn {
   text-decoration: none !important;
 }
 
-/* Ocultar el check verde y el borde de “válido” de Bootstrap */
 .was-validated .form-control:valid,
 .form-control.is-valid,
 .was-validated .form-select:valid,
 .form-select.is-valid {
-  background-image: none !important; /* quita el ícono ✓ */
-  border-color: #ced4da !important; /* borde neutro */
+  background-image: none !important;
+  border-color: #ced4da !important;
   box-shadow: none !important;
-  padding-right: 0.75rem !important; /* corrige el espacio reservado al ícono */
+  padding-right: 0.75rem !important;
 }
 
 .kp-destacados {
@@ -835,7 +804,7 @@ article .btn {
 
 .kp-slider-wrap {
   position: relative;
-  padding: 0 70px; /* más espacio lateral */
+  padding: 0 70px;
 }
 
 .kp-arrow {
@@ -863,7 +832,7 @@ article .btn {
 }
 
 .kp-arrow-prev {
-  left: 20px; /* más separadas */
+  left: 20px;
 }
 .kp-arrow-next {
   right: 20px;
@@ -877,7 +846,6 @@ article .btn {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Imagen central ligeramente más grande */
 .slick-center .kp-card {
   transform: scale(1.07);
   box-shadow: 0 0 15px rgba(107, 45, 189, 0.2);
@@ -895,7 +863,6 @@ article .btn {
   }
 }
 
-/* contenedor visual */
 .kp-destacados {
   background: #f5f7fb;
   border-radius: 18px;
@@ -904,26 +871,22 @@ article .btn {
     0 12px 24px rgba(0, 0, 0, 0.05);
 }
 
-/* deja un gran “gutter” para que las flechas nunca se monten sobre las cards */
 .kp-slider-wrap {
   position: relative;
-  padding: 0 120px; /* <- más espacio lateral */
+  padding: 0 120px;
 }
 
-/* por defecto, TODAS las tarjetas un poco más pequeñas... */
 .kp-card {
   transform: scale(0.93);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-/* ...y la tarjeta central resalta más */
 .slick-center .kp-card {
   transform: scale(1.07);
   box-shadow: 0 0 18px rgba(107, 45, 189, 0.22);
   z-index: 2;
 }
 
-/* flechas más separadas hacia los lados */
 .kp-arrow {
   position: absolute;
   top: 50%;
@@ -935,7 +898,7 @@ article .btn {
   background: #6b2dbd;
   color: #fff;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-  z-index: 6; /* por encima del slider, pero fuera de las cards */
+  z-index: 6;
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -947,7 +910,6 @@ article .btn {
   filter: brightness(1.05);
 }
 
-/* colócalas dentro del gutter (no encima de las imágenes) */
 .kp-arrow-prev {
   left: 34px;
 }
@@ -955,12 +917,10 @@ article .btn {
   right: 34px;
 }
 
-/* pequeño acolchado interno para que el track no toque los bordes */
 .slick-list {
   padding: 4px 2px;
 }
 
-/* ajuste móvil: mantiene 3 visibles y flechas aún con espacio */
 @media (max-width: 1200px) {
   .kp-slider-wrap {
     padding: 0 100px;
@@ -973,7 +933,6 @@ article .btn {
   }
 }
 
-/* Contenedor del bloque */
 .kp-destacados {
   background: #f5f7fb;
   border-radius: 18px;
@@ -982,7 +941,6 @@ article .btn {
     0 12px 24px rgba(0, 0, 0, 0.05);
 }
 
-/* Gutter lateral para flechas (ajusta por tamaño) */
 .kp-slider-wrap {
   position: relative;
   padding: 0 120px;
@@ -1013,16 +971,15 @@ article .btn {
   }
 }
 
-/* Slides full-bleed sin encoger demasiado */
 .slick-slide {
   height: auto;
   display: flex !important;
 }
 .slick-slide > div {
   width: 100%;
-} /* asegura ancho del slide */
+}
 .kp-card {
-  width: 260px; /* mínimo cómodo para que el texto no “salte” vertical */
+  width: 260px;
   max-width: 100%;
   margin: 0 auto;
   transform: scale(0.93);
@@ -1033,14 +990,12 @@ article .btn {
   object-fit: contain;
 }
 
-/* Resalte central */
 .slick-center .kp-card {
   transform: scale(1.07);
   box-shadow: 0 0 18px rgba(107, 45, 189, 0.22);
   z-index: 2;
 }
 
-/* Flechas: más hacia los lados */
 .kp-arrow {
   position: absolute;
   top: 50%;
@@ -1080,25 +1035,21 @@ article .btn {
   }
 }
 
-/* Ajuste del padding del track para que no corte bordes */
 .slick-list {
   padding: 4px 2px;
 }
 
-/* ancho mínimo cómodo; evita que slick “aplane” el contenido */
 .kp-card {
   width: 260px;
   max-width: 100%;
 }
 
-/* si notas que con 5 queda muy justo en tu contenedor, baja un poco */
 @media (min-width: 1200px) and (max-width: 1350px) {
   .kp-card {
     width: 240px;
   }
 }
 
-/* bloque visual */
 .kp-destacados {
   background: #f5f7fb;
   border-radius: 18px;
@@ -1107,13 +1058,11 @@ article .btn {
     0 12px 24px rgba(0, 0, 0, 0.05);
 }
 
-/* el wrapper ya no agrega padding; dejamos salir flechas hacia afuera */
 .kp-slider-wrap {
   position: relative;
   overflow: visible;
 }
 
-/* tarjetas */
 .kp-card {
   transform: scale(0.95);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -1123,14 +1072,12 @@ article .btn {
   object-fit: contain;
 }
 
-/* resalte tarjeta central */
 .slick-center .kp-card {
   transform: scale(1.07);
   box-shadow: 0 0 18px rgba(107, 45, 189, 0.22);
   z-index: 2;
 }
 
-/* flechas lejos de las imágenes */
 .kp-arrow {
   position: absolute;
   top: 50%;
@@ -1154,20 +1101,17 @@ article .btn {
   filter: brightness(1.05);
 }
 
-/* bien a la izquierda/derecha (fuera del carrusel) */
 .kp-arrow-prev {
   left: -56px;
-} /* mueve más si quieres: -64 / -72 */
+}
 .kp-arrow-next {
   right: -56px;
 }
 
-/* track con pequeño acolchado para que no “corte” bordes */
 .slick-list {
   padding: 4px 2px;
 }
 
-/* en tablet acercamos un poco las flechas */
 @media (max-width: 992px) {
   .kp-arrow-prev {
     left: -36px;
@@ -1176,12 +1120,131 @@ article .btn {
     right: -36px;
   }
 }
-/* en móvil, aún más cerca */
 @media (max-width: 576px) {
   .kp-arrow-prev {
     left: -24px;
   }
   .kp-arrow-next {
     right: -24px;
+  }
+}
+
+/* ==== Responsive hardening ==== */
+
+.card .card-img-top,
+.kp-card .kp-card-img,
+.product-categories .card-img-top {
+  height: clamp(160px, 24vw, 260px);
+  object-fit: contain;
+}
+
+.kp-producto-principal {
+  width: 100%;
+  height: clamp(240px, 55vw, 460px);
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.kp-thumb {
+  width: clamp(64px, 14vw, 96px);
+  height: clamp(64px, 14vw, 96px);
+  object-fit: cover;
+}
+
+.slick-slide {
+  display: flex !important;
+}
+.slick-slide > div {
+  width: 100%;
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+.main-header .container {
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.offcanvas-end {
+  width: min(92vw, 340px) !important;
+}
+
+@media (max-width: 576px) {
+  .btn {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .card-body {
+    padding: 1rem;
+  }
+}
+
+.hero-section .display-5 {
+  font-size: clamp(1.6rem, 5vw, 2.6rem);
+}
+.hero-section .lead {
+  font-size: clamp(0.95rem, 2.8vw, 1.1rem);
+}
+
+@media (max-width: 576px) {
+  .row.g-4 {
+    --bs-gutter-x: 0.75rem;
+    --bs-gutter-y: 1rem;
+  }
+}
+
+.main-nav .nav-item .badge {
+  transform: translate(0, -2px);
+}
+
+article img {
+  max-height: clamp(180px, 40vw, 260px);
+  width: 100%;
+  object-fit: cover;
+}
+
+/* 🔧 Quita la animación del botón de menú en responsive */
+.menu-hamburguesa {
+  transition: none !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+.menu-hamburguesa img {
+  transition: none !important;
+  transform: none !important;
+}
+
+/* Mantiene el botón estable y más pequeño en modo móvil */
+@media (max-width: 991.98px) {
+  .menu-hamburguesa {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 50% !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    padding: 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25) !important;
+    transition: none !important;
+    transform: none !important;
+    position: fixed !important;
+    top: 1rem !important;
+    right: 1rem !important;
+    z-index: 1056 !important;
+  }
+
+  .menu-hamburguesa img.menu-icon {
+    width: 28px !important;
+    height: 28px !important;
+    object-fit: contain !important;
   }
 }

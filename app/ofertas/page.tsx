@@ -20,8 +20,8 @@ const OfertasPage: React.FC = () => {
 
   return (
     <main className="container my-5">
-      <h2 className="mb-4 text-center">Ofertas para ti</h2>
-      <Row className="g-4">
+      <h2 className="mb-4 text-center text-primary fw-bold">Ofertas para ti</h2>
+      <Row xs={1} sm={2} md={3} xl={4} className="g-4">
         {productosConOferta.length === 0 && (
           <Col xs={12}>
             <p className="text-center text-muted">
@@ -36,16 +36,23 @@ const OfertasPage: React.FC = () => {
           const precioConOff = p.precio - rebaja;
 
           return (
-            <Col md={6} lg={4} key={p.id}>
-              <Card className="h-100 shadow-sm">
+            <Col key={p.id}>
+              <Card className="h-100 shadow-sm border-0">
                 <Card.Img
                   src={p.imagen}
                   alt={p.nombre}
-                  style={{ height: 220, objectFit: "contain" }}
+                  style={{
+                    height: "clamp(180px, 26vw, 240px)",
+                    objectFit: "contain",
+                  }}
+                  onError={(e) =>
+                    ((e.target as HTMLImageElement).src =
+                      "/img/placeholder.png")
+                  }
                 />
-                <Card.Body>
+                <Card.Body className="d-flex flex-column">
                   <div className="d-flex justify-content-between align-items-center mb-2">
-                    <Card.Title className="mb-0">{p.nombre}</Card.Title>
+                    <Card.Title className="mb-0 fs-6">{p.nombre}</Card.Title>
                     <Badge bg="danger">-{off}%</Badge>
                   </div>
                   <div className="d-flex gap-2 align-items-baseline">
@@ -58,7 +65,7 @@ const OfertasPage: React.FC = () => {
                   </div>
 
                   <Button
-                    className="mt-3 w-100"
+                    className="mt-auto w-100"
                     variant="primary"
                     onClick={() => router.push(`/detalle/${p.id}`)}
                   >
